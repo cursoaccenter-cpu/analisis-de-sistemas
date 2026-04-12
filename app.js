@@ -675,23 +675,44 @@ function initMiniPitch() {
 const TIPO_COLOR = { gk: '#FBBF24', def: '#6EE7F7', mid: '#A855F7', att: '#F87171' };
 const TIPO_LABEL = { gk: 'POR', def: 'DEF', mid: 'MED', att: 'DEL' };
 
-function initSquad() {
-  renderSquad('all');
+async function initSquad() {
+  let squadData = null;
+
+  try {
+    squadData = await loadSquadFromSupabase();
+  } catch(e) {
+    console.warn('No se pudo cargar la plantilla de Supabase:', e);
+  }
+
+  // Si hay datos en Supabase, los usamos; si no, usamos locales y los subimos
+  if (squadData && squadData.length > 0) {
+    renderSquad('all', squadData);
+  } else {
+    renderSquad('all', SQUAD);
+    // Intenta hacer seed automático si hay sesión
+    const token = getSessionToken();
+    if (token) {
+      seedSquadToSupabase().then(ok => {
+        if (ok) showNotification('✅ Plantilla sincronizada con Supabase.');
+      });
+    }
+  }
 
   document.querySelectorAll('.squad-filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       document.querySelectorAll('.squad-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderSquad(btn.dataset.filter);
+      const latest = await loadSquadFromSupabase().catch(() => null);
+      renderSquad(btn.dataset.filter, latest || SQUAD);
     });
   });
 }
 
-function renderSquad(filter) {
+function renderSquad(filter, data = SQUAD) {
   const grid = document.getElementById('squadGrid');
   if (!grid) return;
 
-  const list = filter === 'all' ? SQUAD : SQUAD.filter(p => p.tipo === filter);
+  const list = filter === 'all' ? data : data.filter(p => p.tipo === filter);
   const sorted = [...list].sort((a, b) => a.dorsal - b.dorsal);
 
   grid.innerHTML = sorted.map(p => {

@@ -102,3 +102,36 @@ async function getUser() {
   
   return response.ok ? await response.json() : null;
 }
+
+// --- Plantilla / Squad ---
+async function loadSquadFromSupabase() {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/squad?select=*&order=dorsal.asc`, {
+    headers: supabaseHeaders
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.length > 0 ? data : null;
+}
+
+async function seedSquadToSupabase() {
+  const token = getSessionToken();
+  if (!token) return false;
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/squad`, {
+    method: 'POST',
+    headers: {
+      ...supabaseHeaders,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(SQUAD.map(p => ({
+      dorsal: p.dorsal,
+      nombre: p.nombre,
+      apellido: p.apellido,
+      pos: p.pos,
+      tipo: p.tipo
+    })))
+  });
+  return response.ok;
+}
