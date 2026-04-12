@@ -167,3 +167,25 @@ async function deletePlayerFromSupabase(dorsal) {
   });
   return r.ok;
 }
+
+async function uploadPlayerPhoto(file, dorsal) {
+  const token = getSessionToken();
+  if (!token) return null;
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  const fileName = `player_${dorsal}_${Date.now()}.${ext}`;
+
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/player-photos/${fileName}`, {
+    method: 'POST',
+    headers: {
+      ...supabaseHeaders,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+
+  if (!r.ok) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/player-photos/${fileName}`;
+}
