@@ -69,9 +69,18 @@ async function initAuth() {
 function addLogoutButton(email) {
   const nav = document.querySelector('.nav-links');
   if (!nav) return;
+  
+  // Remove existing logout if any
+  const existing = nav.querySelector('.logout-btn');
+  if (existing) existing.remove();
+
   const logoutBtn = document.createElement('button');
   logoutBtn.className = 'logout-btn';
-  logoutBtn.textContent = `Salir (${email.split('@')[0]})`;
+  logoutBtn.innerHTML = `
+    <span class="logout-icon">󰗼</span>
+    <span class="logout-text">Cerrar Sesión</span>
+    <span class="user-badge">${email.split('@')[0]}</span>
+  `;
   logoutBtn.onclick = () => signOut();
   nav.appendChild(logoutBtn);
 }
@@ -240,6 +249,7 @@ function initEditMode() {
     toggle.querySelector('span:last-child').textContent = 'Editando...';
     document.body.classList.add('editable-active');
     renderSystemContent(activeSystem);
+    initComparison(); // Re-render comparison to enable editables
   });
 
   cancelBtn.addEventListener('click', () => {
@@ -248,6 +258,7 @@ function initEditMode() {
     toggle.querySelector('span:last-child').textContent = 'Modo Edición';
     document.body.classList.remove('editable-active');
     renderSystemContent(activeSystem);
+    initComparison(); // Re-render comparison to remove editables
   });
 
   saveBtn.addEventListener('click', saveChanges);
@@ -440,14 +451,14 @@ function initComparison() {
   const col4231Items = keys.map(k => `
     <div class="comp-item ${d4231[k].win ? "comp-winner" : ""}">
       <div class="comp-item-label">${d4231[k].label}</div>
-      <div class="comp-item-value">${d4231[k].value}</div>
+      <div class="comp-item-value" ${isEditMode ? 'contenteditable="true" class="editable-text"' : ''}>${d4231[k].value}</div>
     </div>
   `).join("");
 
   const col532Items = keys.map(k => `
     <div class="comp-item ${d532[k].win ? "comp-winner" : ""}">
       <div class="comp-item-label">${d532[k].label}</div>
-      <div class="comp-item-value">${d532[k].value}</div>
+      <div class="comp-item-value" ${isEditMode ? 'contenteditable="true" class="editable-text"' : ''}>${d532[k].value}</div>
     </div>
   `).join("");
 
