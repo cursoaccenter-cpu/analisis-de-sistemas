@@ -7,6 +7,15 @@
 let activeSystem = "4231";
 let activeFieldFormation = "4231";
 let activePositionFilter = "all";
+let isEditMode = false;
+let editedSystems = JSON.parse(localStorage.getItem('editedSystems')) || null;
+
+// Initialize data from localStorage if available
+if (editedSystems) {
+  Object.keys(editedSystems).forEach(sys => {
+    Object.assign(SYSTEMS[sys], editedSystems[sys]);
+  });
+}
 
 // ---- Formation Positions on Field (% of pitch width x height) ----
 const FIELD_POSITIONS = {
@@ -73,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initComparison();
   initFieldVisualization();
   initScrollBehavior();
+  initEditMode();
 });
 
 // =============================================
@@ -188,13 +198,19 @@ function renderSystemContent(system) {
   if (!container || !data) return;
 
   container.innerHTML = `
-    <div class="system-layout">
+    <div class="system-layout ${isEditMode ? 'editable-active' : ''}">
       ${renderSummaryCard(data)}
       ${renderStrengths(data)}
       ${renderWeaknesses(data)}
       ${renderPositions(data, system)}
     </div>
   `;
+
+  if (isEditMode) {
+    document.body.classList.add('editable-active');
+    // Ensure edit mode UI is consistent
+    document.getElementById('editToggle').classList.add('active');
+  }
 
   // Position filter buttons
   container.querySelectorAll(".pos-filter-btn").forEach(btn => {
@@ -222,8 +238,8 @@ function renderSummaryCard(data) {
     <div class="card summary-card">
       <div>
         <div class="card-label">SISTEMA TÁCTICO</div>
-        <div class="card-title">${data.name} — ${data.nickname}</div>
-        <p class="card-desc">${data.description}</p>
+        <div class="card-title" ${isEditMode ? 'contenteditable="true"' : ""}>${data.name} — ${data.nickname}</div>
+        <p class="card-desc" ${isEditMode ? 'contenteditable="true"' : ""}>${data.description}</p>
       </div>
       <div class="summary-badges">${badges}</div>
     </div>
@@ -231,10 +247,10 @@ function renderSummaryCard(data) {
 }
 
 function renderStrengths(data) {
-  const items = data.strengths.map(s => `
+  const items = data.strengths.map((s, i) => `
     <li class="sw-item">
       <span class="dot"></span>
-      <span>${s}</span>
+      <span ${isEditMode ? 'contenteditable="true"' : ""} data-index="${i}">${s}</span>
     </li>
   `).join("");
   return `
@@ -249,10 +265,10 @@ function renderStrengths(data) {
 }
 
 function renderWeaknesses(data) {
-  const items = data.weaknesses.map(w => `
+  const items = data.weaknesses.map((w, i) => `
     <li class="sw-item">
       <span class="dot"></span>
-      <span>${w}</span>
+      <span ${isEditMode ? 'contenteditable="true"' : ""} data-index="${i}">${w}</span>
     </li>
   `).join("");
   return `
@@ -295,14 +311,102 @@ function renderPositionCard(pos) {
       <div class="pos-header">
         <div class="pos-number ${pos.type}">${pos.abbr}</div>
         <div class="pos-info">
-          <div class="pos-name">${pos.name}</div>
+          <div class="pos-name" ${isEditMode ? 'contenteditable="true" data-type="name"' : ""}>${pos.name}</div>
           <div class="pos-abbr">${pos.type.toUpperCase()}</div>
         </div>
       </div>
-      <p class="pos-role">${pos.shortRole}</p>
+      <p class="pos-role" ${isEditMode ? 'contenteditable="true" data-type="role"' : ""}>${pos.shortRole}</p>
       <div class="pos-attrs">${attrBadges}</div>
     </div>
   `;
+}
+
+// =============================================
+// EDIT MODE LOGIC
+// =============================================
+function initEditMode() {
+  const toggle = document.getElementById('editToggle');
+  const btnSave = document.getElementById('btnSaveEdit');
+  const btnCancel = document.getElementById('btnCancelEdit');
+
+  if (!toggle) return;
+
+  toggle.addEventListener('click', () => {
+    isEditMode = !isEditMode;
+    toggle.classList.toggle('active', isEditMode);
+    document.body.classList.toggle('editable-active', isEditMode);
+    renderSystemContent(activeSystem);
+  });
+
+  btnSave.addEventListener('click', saveChanges);
+  btnCancel.addEventListener('click', () => {
+    if (confirm('¿Estás seguro de que quieres descartar los cambios?')) {
+      isEditMode = false;
+      toggle.classList.remove('active');
+      document.body.classList.remove('editable-active');
+      renderSystemContent(activeSystem);
+    }
+  });
+}
+
+function saveChanges() {
+  const container = document.getElementById('systemContent');
+  const systemKey = activeSystem;
+  const data = SYSTEMS[systemKey];
+
+  // 1. Update core info
+  const titleText = container.querySelector('.card-title').textContent;
+  const descText = container.querySelector('.card-desc').textContent;
+  
+  // Parse name vs nickname (handling " — ")
+  const parts = titleText.split(' — ');
+  data.name = parts[0] || data.name;
+  data.nickname = parts[1] || data.nickname;
+  data.description = descText;
+
+  // 2. Update strengths
+  container.querySelectorAll('.sw-list.strengths span[contenteditable]').forEach(el => {
+    const idx = el.dataset.index;
+    if (idx !== undefined) data.strengths[idx] = el.textContent;
+  });
+
+  // 3. Update weaknesses
+  container.querySelectorAll('.sw-list.weaknesses span[contenteditable]').forEach(el => {
+    const idx = el.dataset.index;
+    if (idx !== undefined) data.weaknesses[idx] = el.textContent;
+  });
+
+  // 4. Update position cards
+  container.querySelectorAll('.position-card').forEach(card => {
+    const posId = card.dataset.posId;
+    const posObj = data.positions.find(p => p.id === posId);
+    if (posObj) {
+      const nameEl = card.querySelector('.pos-name');
+      const roleEl = card.querySelector('.pos-role');
+      posObj.name = nameEl.textContent;
+      posObj.shortRole = roleEl.textContent;
+    }
+  });
+
+  // Save to localStorage
+  if (!editedSystems) editedSystems = {};
+  editedSystems[systemKey] = {
+    name: data.name,
+    nickname: data.nickname,
+    description: data.description,
+    strengths: [...data.strengths],
+    weaknesses: [...data.weaknesses],
+    positions: data.positions.map(p => ({ ...p }))
+  };
+  
+  localStorage.setItem('editedSystems', JSON.stringify(editedSystems));
+
+  isEditMode = false;
+  document.getElementById('editToggle').classList.remove('active');
+  document.body.classList.remove('editable-active');
+  renderSystemContent(activeSystem);
+  
+  alert('Análisis guardado correctamente.');
 }
 
 function filterPositions(system, filter) {

@@ -135,6 +135,35 @@ body {
   display: flex;
   gap: 4px;
   margin-left: auto;
+  align-items: center;
+}
+
+.edit-toggle {
+  background: rgba(168,85,247,0.1);
+  border: 1px solid rgba(168,85,247,0.3);
+  color: var(--purple);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-toggle:hover {
+  background: rgba(168,85,247,0.2);
+  border-color: var(--purple);
+  box-shadow: 0 0 15px rgba(168,85,247,0.2);
+}
+
+.edit-toggle.active {
+  background: var(--purple);
+  color: #fff;
+  border-color: var(--purple);
 }
 
 .nav-link {
@@ -1437,6 +1466,67 @@ canvas#radarChart {
 ::-webkit-scrollbar-thumb:hover { background: rgba(110,231,247,0.4); }
 
 /* ---- Responsive ---- */
+/* ---- Edit Mode Styles ---- */
+.editable-active #systemContent [contenteditable="true"] {
+  outline: none;
+  border: 1px dashed var(--purple);
+  background: rgba(168,85,247,0.05);
+  border-radius: 4px;
+  padding: 4px;
+  transition: var(--transition);
+}
+
+.editable-active #systemContent [contenteditable="true"]:hover {
+  background: rgba(168,85,247,0.1);
+  box-shadow: 0 0 10px rgba(168,85,247,0.1);
+}
+
+.edit-actions {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 150;
+  gap: 12px;
+}
+
+.editable-active .edit-actions {
+  display: flex;
+}
+
+.btn-save {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(52,211,153,0.3);
+  transition: var(--transition);
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52,211,153,0.4);
+}
+
+.btn-cancel {
+  background: rgba(248,113,113,0.1);
+  color: var(--red);
+  border: 1px solid rgba(248,113,113,0.3);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-cancel:hover {
+  background: rgba(248,113,113,0.2);
+  border-color: var(--red);
+}
+
 @media (max-width: 900px) {
   .hero { flex-direction: column; padding-top: 100px; text-align: center; }
   .hero-cta { justify-content: center; }
