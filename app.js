@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSystemTabs();
   renderSystemContent("4231");
   initComparison();
+  initSquad();
   initFieldVisualization();
   initScrollBehavior();
 });
@@ -666,6 +667,58 @@ function initMiniPitch() {
     // Box
     ctx.strokeRect(w/4, 5, w/2, 25);
     ctx.strokeRect(w/4, h-30, w/2, 25);
+}
+
+// =============================================
+// SQUAD / PLANTILLA
+// =============================================
+const TIPO_COLOR = { gk: '#FBBF24', def: '#6EE7F7', mid: '#A855F7', att: '#F87171' };
+const TIPO_LABEL = { gk: 'POR', def: 'DEF', mid: 'MED', att: 'DEL' };
+
+function initSquad() {
+  renderSquad('all');
+
+  document.querySelectorAll('.squad-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.squad-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderSquad(btn.dataset.filter);
+    });
+  });
+}
+
+function renderSquad(filter) {
+  const grid = document.getElementById('squadGrid');
+  if (!grid) return;
+
+  const list = filter === 'all' ? SQUAD : SQUAD.filter(p => p.tipo === filter);
+  const sorted = [...list].sort((a, b) => a.dorsal - b.dorsal);
+
+  grid.innerHTML = sorted.map(p => {
+    const color = TIPO_COLOR[p.tipo] || '#6EE7F7';
+    const label = TIPO_LABEL[p.tipo] || p.tipo.toUpperCase();
+    const seed = encodeURIComponent(`${p.nombre}${p.apellido}`);
+    const avatarUrl = `https://api.dicebear.com/8.x/avataaars/svg?seed=${seed}&backgroundColor=0f172a,111827&backgroundType=gradientLinear`;
+    return `
+      <div class="squad-card animate-in">
+        <div class="squad-dorsal" style="color:${color}">${p.dorsal}</div>
+        <div class="squad-avatar-wrap">
+          <img
+            class="squad-avatar"
+            src="${avatarUrl}"
+            alt="${p.nombre} ${p.apellido}"
+            loading="lazy"
+          />
+          <div class="squad-tipo-badge" style="background:${color}22; color:${color}; border-color:${color}44">${label}</div>
+        </div>
+        <div class="squad-info">
+          <div class="squad-nombre">${p.nombre}</div>
+          <div class="squad-apellido">${p.apellido}</div>
+          <div class="squad-pos">${p.pos}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // =============================================

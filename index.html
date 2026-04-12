@@ -70,6 +70,7 @@
       <nav class="nav" id="mainNav">
         <a href="#sistemas" class="nav-link" id="nav-sistemas">Sistemas</a>
         <a href="#comparativa" class="nav-link" id="nav-comparativa">Comparativa</a>
+        <a href="#plantilla" class="nav-link" id="nav-plantilla">Plantilla</a>
         <a href="#campo" class="nav-link" id="nav-campo">Visualización</a>
         <button class="edit-toggle" id="editToggle">
           <span class="edit-icon">📝</span>
@@ -185,6 +186,27 @@
         <p class="section-subtitle">Una comparativa directa generada por IA para entender los puntos clave de diferenciación táctica.</p>
       </div>
       <div class="comparison-grid" id="comparisonGrid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Squad / Plantilla Section -->
+  <section class="squad-section" id="plantilla">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">PLANTILLA</span>
+        <h2 class="section-title">Los Jugadores del Sistema</h2>
+        <p class="section-subtitle">Los 20 integrantes de la plantilla, con su dorsal, nombre y posición en el campo.</p>
+      </div>
+      <div class="squad-filters" id="squadFilters">
+        <button class="squad-filter-btn active" data-filter="all">Todos</button>
+        <button class="squad-filter-btn" data-filter="gk">Porteros</button>
+        <button class="squad-filter-btn" data-filter="def">Defensas</button>
+        <button class="squad-filter-btn" data-filter="mid">Medios</button>
+        <button class="squad-filter-btn" data-filter="att">Delanteros</button>
+      </div>
+      <div class="squad-grid" id="squadGrid">
         <!-- Filled by JS -->
       </div>
     </div>

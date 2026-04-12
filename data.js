@@ -556,3 +556,30 @@ const FIELD_POSITIONS = {
 };
 
 const RADAR_LABELS = ["Ataque", "Defensa", "Mediocampo", "Pressing", "Versatilidad", "Complejidad"];
+
+// =============================================
+// SQUAD DATA — Plantilla con 20 jugadores
+// =============================================
+const SQUAD = [
+  { dorsal: 1,  nombre: "Carlos",  apellido: "Mendizábal",  pos: "Portero",       tipo: "gk"  },
+  { dorsal: 13, nombre: "Iñigo",   apellido: "Larrazábal",  pos: "Portero",       tipo: "gk"  },
+  { dorsal: 2,  nombre: "Ander",   apellido: "Goikoetxea",  pos: "Lateral Dcho",  tipo: "def" },
+  { dorsal: 3,  nombre: "Mikel",   apellido: "Zubiaurre",   pos: "Central Izdo",  tipo: "def" },
+  { dorsal: 4,  nombre: "Jon",     apellido: "Etxeberria",  pos: "Central Dcho",  tipo: "def" },
+  { dorsal: 5,  nombre: "Unai",    apellido: "Arrizabalaga",pos: "Lateral Izdo",  tipo: "def" },
+  { dorsal: 6,  nombre: "Aitor",   apellido: "Uriarte",     pos: "Carrilero Izdo",tipo: "def" },
+  { dorsal: 12, nombre: "Beñat",   apellido: "Garmendia",   pos: "Carrilero Dcho",tipo: "def" },
+  { dorsal: 7,  nombre: "Iker",    apellido: "Iriondo",     pos: "Mediapunta",    tipo: "mid" },
+  { dorsal: 8,  nombre: "Gorka",   apellido: "Olaizola",    pos: "Pivote",        tipo: "mid" },
+  { dorsal: 14, nombre: "Markel",  apellido: "Aguirre",     pos: "Pivote",        tipo: "mid" },
+  { dorsal: 15, nombre: "Asier",   apellido: "Txabarri",    pos: "Interior Izdo", tipo: "mid" },
+  { dorsal: 16, nombre: "Urko",    apellido: "Barrutia",    pos: "Interior Dcho", tipo: "mid" },
+  { dorsal: 17, nombre: "Julen",   apellido: "Kortabarria", pos: "Medio Centro",  tipo: "mid" },
+  { dorsal: 9,  nombre: "Gaizka",  apellido: "Rekalde",     pos: "Delantero",     tipo: "att" },
+  { dorsal: 10, nombre: "Dani",    apellido: "Olasagasti",  pos: "Mediapunta",    tipo: "att" },
+  { dorsal: 11, nombre: "Xabier",  apellido: "Bilbao",      pos: "Extremo Izdo",  tipo: "att" },
+  { dorsal: 18, nombre: "Eneko",   apellido: "Arantzamendi",pos: "Extremo Dcho",  tipo: "att" },
+  { dorsal: 19, nombre: "Oscar",   apellido: "Zubizarreta", pos: "Segundo Delant",tipo: "att" },
+  { dorsal: 20, nombre: "Luken",   apellido: "Garitano",    pos: "Delantero",     tipo: "att" },
+];
+
