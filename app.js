@@ -12,9 +12,14 @@ let editedSystems = JSON.parse(localStorage.getItem('editedSystems')) || {};
 document.addEventListener("DOMContentLoaded", async () => {
   initParticles();
   initMiniPitch();
-  initAuth(); // Iniciamos el control de acceso
+  
+  // Inicializamos Modo Edición DE PRIMERO y de forma aislada
+  try {
+    initEditMode();
+  } catch(e) { console.error("Error al iniciar modo edición:", e); }
 
-  // Intenta cargar datos de Supabase, pero no bloquea si falla
+  initAuth(); 
+
   try {
     await loadAllSystemsFromSupabase();
   } catch (err) {
@@ -26,7 +31,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   initComparison();
   initFieldVisualization();
   initScrollBehavior();
-  initEditMode();
 });
 
 // --- Gestión de Autenticación ---
@@ -245,32 +249,41 @@ function renderPositionCard(pos) {
 // EDIT MODE
 // =============================================
 function initEditMode() {
-  const toggle = document.getElementById('editToggle');
-  const cancelBtn = document.getElementById('cancelEdit');
-  const saveBtn = document.getElementById('saveEdit');
+  document.addEventListener('click', (e) => {
+    // Usamos delegación de eventos para que el clic funcione siempre
+    const toggle = e.target.closest('#editToggle');
+    if (toggle) {
+      isEditMode = true;
+      toggle.classList.add('active');
+      const textSpan = toggle.querySelector('span:not(.edit-icon)');
+      if (textSpan) textSpan.textContent = 'Editando...';
+      document.body.classList.add('editable-active');
+      renderSystemContent(activeSystem);
+      initComparison(); 
+      showNotification('📝 Modo Edición activado. Haz clic en los textos con borde azul.');
+      return;
+    }
 
-  toggle.addEventListener('click', () => {
-    isEditMode = true;
-    toggle.classList.add('active');
-    const textSpan = toggle.querySelector('span:not(.edit-icon)');
-    if (textSpan) textSpan.textContent = 'Editando...';
-    document.body.classList.add('editable-active');
-    renderSystemContent(activeSystem);
-    initComparison(); 
-    showNotification('📝 Modo Edición activado. Haz clic en cualquier texto para cambiarlo.');
+    const cancelBtn = e.target.closest('#btnCancelEdit') || e.target.closest('#cancelEdit');
+    if (cancelBtn) {
+      isEditMode = false;
+      const toggleBtn = document.getElementById('editToggle');
+      if (toggleBtn) {
+        toggleBtn.classList.remove('active');
+        const textSpan = toggleBtn.querySelector('span:not(.edit-icon)');
+        if (textSpan) textSpan.textContent = 'Modo Edición';
+      }
+      document.body.classList.remove('editable-active');
+      renderSystemContent(activeSystem);
+      initComparison(); 
+      return;
+    }
+
+    const saveBtn = e.target.closest('#btnSaveEdit') || e.target.closest('#saveEdit');
+    if (saveBtn) {
+      saveChanges();
+    }
   });
-
-  cancelBtn.addEventListener('click', () => {
-    isEditMode = false;
-    toggle.classList.remove('active');
-    const textSpan = toggle.querySelector('span:not(.edit-icon)');
-    if (textSpan) textSpan.textContent = 'Modo Edición';
-    document.body.classList.remove('editable-active');
-    renderSystemContent(activeSystem);
-    initComparison(); 
-  });
-
-  saveBtn.addEventListener('click', saveChanges);
 }
 
 async function saveChanges() {
