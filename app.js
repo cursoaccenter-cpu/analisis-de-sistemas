@@ -730,7 +730,9 @@ function renderSquad(filter, data = currentSquadData) {
     const color = TIPO_COLOR[p.tipo] || '#6EE7F7';
     const label = TIPO_LABEL[p.tipo] || p.tipo.toUpperCase();
     const seed = encodeURIComponent(`${p.nombre}${p.apellido}`);
-    const avatarUrl = `https://api.dicebear.com/8.x/avataaars/svg?seed=${seed}&backgroundColor=0f172a,111827&backgroundType=gradientLinear`;
+    const avatarUrl = p.photo_url
+      ? p.photo_url
+      : `https://api.dicebear.com/8.x/avataaars/svg?seed=${seed}&backgroundColor=0f172a,111827&backgroundType=gradientLinear`;
     return `
       <div class="squad-card animate-in" data-dorsal="${p.dorsal}">
         <div class="squad-dorsal" style="color:${color}">${p.dorsal}</div>
@@ -809,6 +811,20 @@ function openPlayerModal(player = null) {
           <label>Descripción de posición</label>
           <input type="text" id="fPos" class="player-input" value="${isEdit ? player.pos : ''}" placeholder="Ej: Lateral Dcho" required />
         </div>
+        <div class="player-form-group">
+          <label>Foto del jugador</label>
+          <label class="photo-upload-area" for="fPhoto" id="photoUploadLabel">
+            <img id="photoPreview" class="photo-preview-img"
+              src="${isEdit && player.photo_url ? player.photo_url : ''}"
+              style="${isEdit && player.photo_url ? '' : 'display:none'}" />
+            <div id="photoPlaceholder" class="photo-placeholder" style="${isEdit && player.photo_url ? 'display:none' : ''}">
+              <span style="font-size:1.5rem">📷</span>
+              <span>Clic para subir foto</span>
+              <span style="font-size:0.7rem;color:var(--text-muted)">JPG, PNG, WEBP</span>
+            </div>
+            <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp" style="display:none" />
+          </label>
+        </div>
         <div class="player-form-actions">
           <button type="button" class="btn-cancel" id="playerModalCancel">Cancelar</button>
           <button type="submit" class="btn-save" id="playerModalSave">${isEdit ? 'Guardar Cambios' : 'Añadir Jugador'}</button>
@@ -824,6 +840,21 @@ function openPlayerModal(player = null) {
   document.getElementById('playerModalCancel').onclick = () => closePlayerModal();
   overlay.addEventListener('click', e => { if (e.target === overlay) closePlayerModal(); });
 
+  // Preview de foto
+  document.getElementById('fPhoto').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const preview = document.getElementById('photoPreview');
+      const placeholder = document.getElementById('photoPlaceholder');
+      preview.src = ev.target.result;
+      preview.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
   document.getElementById('playerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const saveBtn = document.getElementById('playerModalSave');
@@ -838,6 +869,18 @@ function openPlayerModal(player = null) {
       tipo: document.getElementById('fTipo').value
     };
 
+    // Subir foto si hay una seleccionada
+    const photoFile = document.getElementById('fPhoto').files[0];
+    if (photoFile) {
+      saveBtn.textContent = 'Subiendo foto...';
+      const photoUrl = await uploadPlayerPhoto(photoFile, newPlayer.dorsal);
+      if (photoUrl) newPlayer.photo_url = photoUrl;
+      else showNotification('⚠️ No se pudo subir la foto. ¿Existe el bucket?');
+    } else if (isEdit && player.photo_url) {
+      newPlayer.photo_url = player.photo_url; // conservar foto existente
+    }
+
+    saveBtn.textContent = 'Guardando...';
     let ok;
     if (isEdit) {
       ok = await updatePlayerInSupabase(player.dorsal, newPlayer);
