@@ -6,6 +6,14 @@
 let activeSystem = "4231";
 let activeFieldFormation = "4231";
 let isEditMode = false;
+
+// Versión de datos — si cambia, borra el localStorage antiguo
+const DATA_VERSION = "2";
+if (localStorage.getItem('dataVersion') !== DATA_VERSION) {
+  localStorage.removeItem('editedSystems');
+  localStorage.setItem('dataVersion', DATA_VERSION);
+}
+
 let editedSystems = JSON.parse(localStorage.getItem('editedSystems')) || {};
 
 // Initialize application
