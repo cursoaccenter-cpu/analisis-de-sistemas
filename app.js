@@ -74,9 +74,14 @@ const MINI_POSITIONS = {
 };
 
 // ---- Init ----
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initParticles();
   initMiniPitch();
+
+  // Carga los datos personalizados desde Supabase (si están configurados)
+  const statusEl = document.getElementById('header');
+  await loadAllSystemsFromSupabase();
+
   initSystemTabs();
   renderSystemContent("4231");
   initComparison();
@@ -401,7 +406,7 @@ function saveChanges() {
     }
   });
 
-  // Save to localStorage
+  // Save to localStorage (fallback)
   if (!editedSystems) editedSystems = {};
   editedSystems[systemKey] = {
     name: data.name,
@@ -411,15 +416,48 @@ function saveChanges() {
     weaknesses: [...data.weaknesses],
     positions: data.positions.map(p => ({ ...p }))
   };
-  
   localStorage.setItem('editedSystems', JSON.stringify(editedSystems));
+
+  // Save to Supabase (primary)
+  const saved = await saveSystemToSupabase(systemKey, data);
 
   isEditMode = false;
   document.getElementById('editToggle').classList.remove('active');
+  document.getElementById('editToggle').querySelector('span:last-child').textContent = 'Modo Edición';
   document.body.classList.remove('editable-active');
   renderSystemContent(activeSystem);
-  
-  alert('Análisis guardado correctamente.');
+
+  if (saved) {
+    showNotification('✅ Análisis guardado en la base de datos.');
+  } else {
+    showNotification('💾 Análisis guardado localmente (Supabase no configurado).');
+  }
+}
+
+function showNotification(msg) {
+  let notif = document.getElementById('appNotif');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'appNotif';
+    notif.style.cssText = `
+      position: fixed; bottom: 90px; right: 24px; z-index: 200;
+      background: rgba(15,23,42,0.95); border: 1px solid rgba(110,231,247,0.3);
+      color: #e2e8f0; padding: 12px 20px; border-radius: 12px;
+      font-size: 0.875rem; font-weight: 500; backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); transition: all 0.4s ease;
+      opacity: 0; transform: translateY(10px);
+    `;
+    document.body.appendChild(notif);
+  }
+  notif.textContent = msg;
+  requestAnimationFrame(() => {
+    notif.style.opacity = '1';
+    notif.style.transform = 'translateY(0)';
+  });
+  setTimeout(() => {
+    notif.style.opacity = '0';
+    notif.style.transform = 'translateY(10px)';
+  }, 3500);
 }
 
 function filterPositions(system, filter) {
