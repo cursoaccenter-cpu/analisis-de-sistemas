@@ -252,19 +252,22 @@ function initEditMode() {
   toggle.addEventListener('click', () => {
     isEditMode = true;
     toggle.classList.add('active');
-    toggle.querySelector('span:last-child').textContent = 'Editando...';
+    const textSpan = toggle.querySelector('span:not(.edit-icon)');
+    if (textSpan) textSpan.textContent = 'Editando...';
     document.body.classList.add('editable-active');
     renderSystemContent(activeSystem);
-    initComparison(); // Re-render comparison to enable editables
+    initComparison(); 
+    showNotification('📝 Modo Edición activado. Haz clic en cualquier texto para cambiarlo.');
   });
 
   cancelBtn.addEventListener('click', () => {
     isEditMode = false;
     toggle.classList.remove('active');
-    toggle.querySelector('span:last-child').textContent = 'Modo Edición';
+    const textSpan = toggle.querySelector('span:not(.edit-icon)');
+    if (textSpan) textSpan.textContent = 'Modo Edición';
     document.body.classList.remove('editable-active');
     renderSystemContent(activeSystem);
-    initComparison(); // Re-render comparison to remove editables
+    initComparison(); 
   });
 
   saveBtn.addEventListener('click', saveChanges);

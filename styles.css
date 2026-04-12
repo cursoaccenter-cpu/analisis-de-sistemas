@@ -1671,6 +1671,32 @@ canvas#radarChart {
 }
 
 
+/* ---- Editable Highlights ---- */
+.editable-active [contenteditable="true"] {
+  outline: 2px dashed var(--cyan);
+  outline-offset: 4px;
+  border-radius: 4px;
+  background: rgba(110, 231, 247, 0.05);
+  cursor: text;
+  transition: all 0.2s ease;
+}
+
+.editable-active [contenteditable="true"]:focus {
+  outline: 2px solid var(--cyan);
+  background: rgba(110, 231, 247, 0.1);
+  box-shadow: 0 0 15px rgba(110, 231, 247, 0.2);
+}
+
+.editable-active .sw-item [contenteditable="true"],
+.editable-active .card-title[contenteditable="true"],
+.editable-active .card-subtitle[contenteditable="true"],
+.editable-active .description-text[contenteditable="true"],
+.editable-active .pos-name[contenteditable="true"],
+.editable-active .pos-role[contenteditable="true"],
+.editable-active .comp-item-value[contenteditable="true"] {
+  position: relative;
+}
+
 /* ---- Logout Button Styles ---- */
 .logout-btn {
   display: flex;
