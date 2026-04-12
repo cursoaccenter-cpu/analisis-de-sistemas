@@ -370,7 +370,7 @@ function initEditMode() {
   });
 }
 
-function saveChanges() {
+async function saveChanges() {
   const container = document.getElementById('systemContent');
   const systemKey = activeSystem;
   const data = SYSTEMS[systemKey];
