@@ -1,0 +1,10 @@
+{
+  "name": "tactic-ai",
+  "version": "1.0.0",
+  "description": "TacticAI — Análisis Táctico de Sistemas de Fútbol con IA",
+  "scripts": {
+    "dev": "npx serve . --listen 3000",
+    "start": "npx serve . --listen 3000"
+  },
+  "keywords": ["football", "tactics", "ai", "analysis"]
+}

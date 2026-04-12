@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TacticAI — Análisis Táctico de Sistemas de Fútbol</title>
+  <meta name="description" content="Análisis en profundidad con IA de los sistemas tácticos de fútbol 4-2-3-1 y 5-3-2: fortalezas, debilidades y rol de cada posición." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="15" stroke="url(#grad)" stroke-width="2"/>
+            <path d="M16 4 L20 14 L30 14 L22 20 L25 30 L16 24 L7 30 L10 20 L2 14 L12 14 Z" fill="url(#grad)" opacity="0.3"/>
+            <circle cx="16" cy="16" r="4" fill="url(#grad)"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#6EE7F7"/>
+                <stop offset="100%" stop-color="#A855F7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">TacticAI</span>
+      </div>
+      <nav class="nav" id="mainNav">
+        <a href="#sistemas" class="nav-link" id="nav-sistemas">Sistemas</a>
+        <a href="#comparativa" class="nav-link" id="nav-comparativa">Comparativa</a>
+        <a href="#campo" class="nav-link" id="nav-campo">Visualización</a>
+      </nav>
+      <div class="header-badge">
+        <span class="badge-dot"></span>
+        <span>IA Activa</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <div class="hero-tag">
+        <span class="tag-icon">🤖</span>
+        Análisis Táctico con Inteligencia Artificial
+      </div>
+      <h1 class="hero-title">
+        Domina los 
+        <span class="gradient-text">Sistemas Tácticos</span>
+        del Fútbol Moderno
+      </h1>
+      <p class="hero-subtitle">
+        Exploración profunda de los sistemas <strong>4-2-3-1</strong> y <strong>5-3-2</strong>: fortalezas, debilidades y el rol preciso de cada posición, analizado por IA.
+      </p>
+      <div class="hero-cta">
+        <a href="#sistemas" class="btn-primary" id="btnExplore">
+          <span>Explorar Sistemas</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#comparativa" class="btn-secondary" id="btnCompare">Comparar Sistemas</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-number">2</span>
+          <span class="stat-label">Sistemas Analizados</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">22</span>
+          <span class="stat-label">Posiciones Definidas</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">∞</span>
+          <span class="stat-label">Decisiones Tácticas</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="pitch-mini" id="pitchMini">
+        <div class="pitch-lines">
+          <div class="pitch-center-circle"></div>
+          <div class="pitch-center-line"></div>
+          <div class="pitch-box top"></div>
+          <div class="pitch-box bottom"></div>
+        </div>
+        <div id="miniPlayers" class="mini-players"></div>
+      </div>
+      <div class="formation-label" id="formationLabel">4-2-3-1</div>
+    </div>
+  </section>
+
+  <!-- Systems Section -->
+  <section class="systems-section" id="sistemas">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">SISTEMAS TÁCTICOS</span>
+        <h2 class="section-title">Selecciona un Sistema para Analizarlo</h2>
+        <p class="section-subtitle">Cada sistema ha sido analizado en profundidad por nuestra IA para ofrecerte una visión completa y detallada.</p>
+      </div>
+
+      <!-- System Selector Tabs -->
+      <div class="system-tabs" id="systemTabs">
+        <button class="system-tab active" id="tab4231" data-system="4231">
+          <div class="tab-icon">⚡</div>
+          <div class="tab-info">
+            <span class="tab-number">4-2-3-1</span>
+            <span class="tab-desc">El Sistema Universal</span>
+          </div>
+        </button>
+        <button class="system-tab" id="tab532" data-system="532">
+          <div class="tab-icon">🛡️</div>
+          <div class="tab-info">
+            <span class="tab-number">5-3-2</span>
+            <span class="tab-desc">El Bloque Sólido</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- System Content -->
+      <div class="system-content" id="systemContent">
+        <!-- Dynamically filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="comparison-section" id="comparativa">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">ANÁLISIS COMPARATIVO</span>
+        <h2 class="section-title">4-2-3-1 vs 5-3-2</h2>
+        <p class="section-subtitle">Una comparativa directa generada por IA para entender los puntos clave de diferenciación táctica.</p>
+      </div>
+      <div class="comparison-grid" id="comparisonGrid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Field Visualization Section -->
+  <section class="field-section" id="campo">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">VISUALIZACIÓN INTERACTIVA</span>
+        <h2 class="section-title">Visualiza las Formaciones en el Campo</h2>
+        <p class="section-subtitle">Haz clic en cada jugador para conocer su rol específico dentro del sistema.</p>
+      </div>
+      <div class="field-wrapper">
+        <div class="field-controls">
+          <button class="field-btn active" id="fieldBtn4231" data-formation="4231">4-2-3-1</button>
+          <button class="field-btn" id="fieldBtn532" data-formation="532">5-3-2</button>
+        </div>
+        <div class="field-container">
+          <div class="football-pitch" id="footballPitch">
+            <!-- Pitch markings -->
+            <div class="pitch-marking center-circle"></div>
+            <div class="pitch-marking center-line"></div>
+            <div class="pitch-marking penalty-area top-area"></div>
+            <div class="pitch-marking penalty-area bottom-area"></div>
+            <div class="pitch-marking goal-area top-goal"></div>
+            <div class="pitch-marking goal-area bottom-goal"></div>
+            <div class="pitch-marking corner tl"></div>
+            <div class="pitch-marking corner tr"></div>
+            <div class="pitch-marking corner bl"></div>
+            <div class="pitch-marking corner br"></div>
+            <!-- Players injected by JS -->
+            <div id="pitchPlayers"></div>
+          </div>
+          <!-- Player tooltip -->
+          <div class="player-tooltip" id="playerTooltip">
+            <div class="tooltip-header">
+              <span class="tooltip-pos" id="tooltipPos"></span>
+              <span class="tooltip-name" id="tooltipName"></span>
+            </div>
+            <p class="tooltip-role" id="tooltipRole"></p>
+            <div class="tooltip-attrs" id="tooltipAttrs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <div class="logo-icon small">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="15" stroke="url(#grad2)" stroke-width="2"/>
+            <circle cx="16" cy="16" r="4" fill="url(#grad2)"/>
+            <defs>
+              <linearGradient id="grad2" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#6EE7F7"/>
+                <stop offset="100%" stop-color="#A855F7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span>TacticAI &copy; 2026</span>
+      </div>
+      <p class="footer-note">Análisis generado por Inteligencia Artificial. Athletic Club — Desarrollo Tecnológico.</p>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
