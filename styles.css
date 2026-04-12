@@ -1905,3 +1905,118 @@ canvas#radarChart {
     gap: 14px;
   }
 }
+
+/* ---- Squad Add Button ---- */
+.squad-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 32px;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, rgba(110,231,247,0.15), rgba(168,85,247,0.15));
+  border: 1px solid rgba(110,231,247,0.4);
+  border-radius: 999px;
+  color: var(--cyan);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-main);
+}
+.squad-add-btn:hover {
+  background: linear-gradient(135deg, rgba(110,231,247,0.25), rgba(168,85,247,0.25));
+  box-shadow: 0 0 20px rgba(110,231,247,0.2);
+  transform: translateY(-2px);
+}
+
+/* ---- Squad Card Actions ---- */
+.squad-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.squad-card:hover .squad-card-actions { opacity: 1; }
+
+.squad-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  backdrop-filter: blur(4px);
+}
+.squad-action-btn.edit-btn {
+  background: rgba(110,231,247,0.15);
+  color: var(--cyan);
+}
+.squad-action-btn.edit-btn:hover {
+  background: rgba(110,231,247,0.3);
+}
+.squad-action-btn.delete-btn {
+  background: rgba(248,113,113,0.15);
+  color: var(--red);
+}
+.squad-action-btn.delete-btn:hover {
+  background: rgba(248,113,113,0.3);
+}
+
+/* ---- Player Form Modal ---- */
+.player-form-modal {
+  max-width: 480px;
+  width: 92vw;
+}
+.player-form { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+
+.player-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.player-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-form-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.player-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: var(--font-main);
+  transition: border-color 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+.player-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(110,231,247,0.1);
+}
+.player-input option { background: var(--bg-card); }
+
+.player-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}

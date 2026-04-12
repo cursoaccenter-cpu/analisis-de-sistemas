@@ -15,6 +15,7 @@ if (localStorage.getItem('dataVersion') !== DATA_VERSION) {
 }
 
 let editedSystems = JSON.parse(localStorage.getItem('editedSystems')) || {};
+let currentSquadData = [];
 
 // Initialize application
 document.addEventListener("DOMContentLoaded", async () => {
@@ -685,38 +686,40 @@ const TIPO_LABEL = { gk: 'POR', def: 'DEF', mid: 'MED', att: 'DEL' };
 
 async function initSquad() {
   let squadData = null;
+  try { squadData = await loadSquadFromSupabase(); } catch(e) {}
 
-  try {
-    squadData = await loadSquadFromSupabase();
-  } catch(e) {
-    console.warn('No se pudo cargar la plantilla de Supabase:', e);
-  }
-
-  // Si hay datos en Supabase, los usamos; si no, usamos locales y los subimos
   if (squadData && squadData.length > 0) {
-    renderSquad('all', squadData);
+    currentSquadData = squadData;
   } else {
-    renderSquad('all', SQUAD);
-    // Intenta hacer seed automático si hay sesión
+    currentSquadData = [...SQUAD];
     const token = getSessionToken();
-    if (token) {
-      seedSquadToSupabase().then(ok => {
-        if (ok) showNotification('✅ Plantilla sincronizada con Supabase.');
-      });
-    }
+    if (token) seedSquadToSupabase().then(ok => ok && showNotification('✅ Plantilla sincronizada.'));
   }
+
+  // Botón Añadir Jugador
+  const filtersEl = document.getElementById('squadFilters');
+  if (filtersEl && !document.getElementById('btnAddPlayer')) {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'squad-add-btn'; addBtn.id = 'btnAddPlayer';
+    addBtn.innerHTML = '+ Añadir Jugador';
+    addBtn.onclick = () => openPlayerModal();
+    filtersEl.parentNode.insertBefore(addBtn, filtersEl.nextSibling);
+  }
+
+  renderSquad('all', currentSquadData);
 
   document.querySelectorAll('.squad-filter-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       document.querySelectorAll('.squad-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const latest = await loadSquadFromSupabase().catch(() => null);
-      renderSquad(btn.dataset.filter, latest || SQUAD);
+      if (latest) currentSquadData = latest;
+      renderSquad(btn.dataset.filter, currentSquadData);
     });
   });
 }
 
-function renderSquad(filter, data = SQUAD) {
+function renderSquad(filter, data = currentSquadData) {
   const grid = document.getElementById('squadGrid');
   if (!grid) return;
 
@@ -729,15 +732,14 @@ function renderSquad(filter, data = SQUAD) {
     const seed = encodeURIComponent(`${p.nombre}${p.apellido}`);
     const avatarUrl = `https://api.dicebear.com/8.x/avataaars/svg?seed=${seed}&backgroundColor=0f172a,111827&backgroundType=gradientLinear`;
     return `
-      <div class="squad-card animate-in">
+      <div class="squad-card animate-in" data-dorsal="${p.dorsal}">
         <div class="squad-dorsal" style="color:${color}">${p.dorsal}</div>
+        <div class="squad-card-actions">
+          <button class="squad-action-btn edit-btn" data-dorsal="${p.dorsal}" title="Editar">✏️</button>
+          <button class="squad-action-btn delete-btn" data-dorsal="${p.dorsal}" title="Borrar">🗑️</button>
+        </div>
         <div class="squad-avatar-wrap">
-          <img
-            class="squad-avatar"
-            src="${avatarUrl}"
-            alt="${p.nombre} ${p.apellido}"
-            loading="lazy"
-          />
+          <img class="squad-avatar" src="${avatarUrl}" alt="${p.nombre} ${p.apellido}" loading="lazy" />
           <div class="squad-tipo-badge" style="background:${color}22; color:${color}; border-color:${color}44">${label}</div>
         </div>
         <div class="squad-info">
@@ -748,7 +750,132 @@ function renderSquad(filter, data = SQUAD) {
       </div>
     `;
   }).join('');
+
+  // Attach CRUD event listeners
+  grid.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const d = parseInt(btn.dataset.dorsal);
+      const player = currentSquadData.find(p => p.dorsal === d);
+      if (player) openPlayerModal(player);
+    });
+  });
+  grid.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deletePlayer(parseInt(btn.dataset.dorsal));
+    });
+  });
 }
+
+function openPlayerModal(player = null) {
+  const isEdit = player !== null;
+  const existing = document.getElementById('playerFormModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pos-modal-overlay';
+  overlay.id = 'playerFormModal';
+  overlay.innerHTML = `
+    <div class="pos-modal player-form-modal">
+      <button class="modal-close" id="playerModalClose">&times;</button>
+      <div class="modal-badge">${isEdit ? '✏️ Editar Jugador' : '+ Nuevo Jugador'}</div>
+      <div class="modal-title">${isEdit ? player.nombre + ' ' + player.apellido : 'Añadir a la Plantilla'}</div>
+      <form class="player-form" id="playerForm">
+        <div class="player-form-row">
+          <div class="player-form-group">
+            <label>Dorsal</label>
+            <input type="number" id="fDorsal" class="player-input" min="1" max="99" value="${isEdit ? player.dorsal : ''}" required />
+          </div>
+          <div class="player-form-group">
+            <label>Posición</label>
+            <select id="fTipo" class="player-input">
+              <option value="gk" ${isEdit && player.tipo==='gk' ? 'selected' : ''}>Portero</option>
+              <option value="def" ${isEdit && player.tipo==='def' ? 'selected' : ''}>Defensa</option>
+              <option value="mid" ${isEdit && player.tipo==='mid' ? 'selected' : ''}>Medio</option>
+              <option value="att" ${isEdit && player.tipo==='att' ? 'selected' : ''}>Delantero</option>
+            </select>
+          </div>
+        </div>
+        <div class="player-form-group">
+          <label>Nombre</label>
+          <input type="text" id="fNombre" class="player-input" value="${isEdit ? player.nombre : ''}" required />
+        </div>
+        <div class="player-form-group">
+          <label>Apellido</label>
+          <input type="text" id="fApellido" class="player-input" value="${isEdit ? player.apellido : ''}" required />
+        </div>
+        <div class="player-form-group">
+          <label>Descripción de posición</label>
+          <input type="text" id="fPos" class="player-input" value="${isEdit ? player.pos : ''}" placeholder="Ej: Lateral Dcho" required />
+        </div>
+        <div class="player-form-actions">
+          <button type="button" class="btn-cancel" id="playerModalCancel">Cancelar</button>
+          <button type="submit" class="btn-save" id="playerModalSave">${isEdit ? 'Guardar Cambios' : 'Añadir Jugador'}</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('open')));
+
+  document.getElementById('playerModalClose').onclick = () => closePlayerModal();
+  document.getElementById('playerModalCancel').onclick = () => closePlayerModal();
+  overlay.addEventListener('click', e => { if (e.target === overlay) closePlayerModal(); });
+
+  document.getElementById('playerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const saveBtn = document.getElementById('playerModalSave');
+    saveBtn.textContent = 'Guardando...';
+    saveBtn.disabled = true;
+
+    const newPlayer = {
+      dorsal: parseInt(document.getElementById('fDorsal').value),
+      nombre: document.getElementById('fNombre').value.trim(),
+      apellido: document.getElementById('fApellido').value.trim(),
+      pos: document.getElementById('fPos').value.trim(),
+      tipo: document.getElementById('fTipo').value
+    };
+
+    let ok;
+    if (isEdit) {
+      ok = await updatePlayerInSupabase(player.dorsal, newPlayer);
+      if (ok) {
+        const idx = currentSquadData.findIndex(p => p.dorsal === player.dorsal);
+        if (idx !== -1) currentSquadData[idx] = newPlayer;
+      }
+    } else {
+      ok = await addPlayerToSupabase(newPlayer);
+      if (ok) currentSquadData.push(newPlayer);
+    }
+
+    closePlayerModal();
+    renderSquad('all', currentSquadData);
+    showNotification(ok
+      ? (isEdit ? '✅ Jugador actualizado.' : '✅ Jugador añadido.')
+      : '⚠️ Error al guardar. ¿Has iniciado sesión?'
+    );
+  });
+}
+
+function closePlayerModal() {
+  const overlay = document.getElementById('playerFormModal');
+  if (overlay) { overlay.classList.remove('open'); setTimeout(() => overlay.remove(), 300); }
+}
+
+async function deletePlayer(dorsal) {
+  if (!confirm(`¿Seguro que quieres eliminar al jugador con dorsal ${dorsal}?`)) return;
+  const ok = await deletePlayerFromSupabase(dorsal);
+  if (ok) {
+    currentSquadData = currentSquadData.filter(p => p.dorsal !== dorsal);
+    renderSquad('all', currentSquadData);
+    showNotification('🗑️ Jugador eliminado.');
+  } else {
+    showNotification('⚠️ Error al eliminar. ¿Has iniciado sesión?');
+  }
+}
+
 
 // =============================================
 // FIELD VISUALIZATION

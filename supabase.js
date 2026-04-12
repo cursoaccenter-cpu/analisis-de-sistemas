@@ -135,3 +135,35 @@ async function seedSquadToSupabase() {
   });
   return response.ok;
 }
+
+async function addPlayerToSupabase(player) {
+  const token = getSessionToken();
+  if (!token) return false;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/squad`, {
+    method: 'POST',
+    headers: { ...supabaseHeaders, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(player)
+  });
+  return r.ok;
+}
+
+async function updatePlayerInSupabase(originalDorsal, player) {
+  const token = getSessionToken();
+  if (!token) return false;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/squad?dorsal=eq.${originalDorsal}`, {
+    method: 'PATCH',
+    headers: { ...supabaseHeaders, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(player)
+  });
+  return r.ok;
+}
+
+async function deletePlayerFromSupabase(dorsal) {
+  const token = getSessionToken();
+  if (!token) return false;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/squad?dorsal=eq.${dorsal}`, {
+    method: 'DELETE',
+    headers: { ...supabaseHeaders, 'Authorization': `Bearer ${token}` }
+  });
+  return r.ok;
+}
