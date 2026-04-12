@@ -41,7 +41,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSquad();
   initFieldVisualization();
   initScrollBehavior();
+  initTheme();
 });
+
+// --- Gestión de Temas (Claro/Oscuro) ---
+function initTheme() {
+  const themeToggle = document.getElementById('themeToggle');
+  const body = document.body;
+  
+  // Cargar tema guardado
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    body.classList.add('light-theme');
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('light-theme');
+      const isLight = body.classList.contains('light-theme');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      
+      // Feedback visual opcional
+      showNotification(`Modo ${isLight ? 'Claro' : 'Oscuro'} activado`);
+    });
+  }
+}
 
 // --- Gestión de Autenticación ---
 async function initAuth() {

@@ -41,6 +41,62 @@
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ---- Light Theme Overrides ---- */
+body.light-theme {
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #F1F5F9;
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(0,0,0,0.08);
+  --border-hover: rgba(110,231,247,0.5);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+/* Body transition for theme switch */
+body {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Theme Toggle Button */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-toggle {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: var(--transition);
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.theme-toggle:hover {
+  background: rgba(110,231,247,0.1);
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+}
+
+body.light-theme .theme-toggle {
+  background: rgba(0,0,0,0.03);
+}
+
+.sun-icon { display: none; }
+body.light-theme .sun-icon { display: block; }
+body.light-theme .moon-icon { display: none; }
+
 /* ---- Reset & Base ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
