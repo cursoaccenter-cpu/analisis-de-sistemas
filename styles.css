@@ -1670,3 +1670,60 @@ canvas#radarChart {
   margin-left: 15px;
 }
 
+
+/* ---- Logout Button Styles ---- */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: var(--red);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.logout-btn:hover {
+  background: rgba(248, 113, 113, 0.15);
+  border-color: var(--red);
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.1);
+  transform: translateY(-2px);
+}
+
+.logout-icon {
+  font-size: 1.1rem;
+  font-family: 'Material Symbols Outlined', sans-serif; /* Fallback icon font */
+}
+
+.logout-text {
+  border-right: 1px solid rgba(248, 113, 113, 0.2);
+  padding-right: 12px;
+}
+
+.user-badge {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-transform: lowercase;
+}
+
+.logout-btn:hover .user-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+  .logout-text { display: none; }
+  .logout-btn { padding: 8px 12px; }
+  .logout-btn .user-badge { display: none; }
+}
