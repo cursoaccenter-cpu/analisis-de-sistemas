@@ -78,9 +78,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   initParticles();
   initMiniPitch();
 
-  // Carga los datos personalizados desde Supabase (si están configurados)
-  const statusEl = document.getElementById('header');
-  await loadAllSystemsFromSupabase();
+  // Intenta cargar datos de Supabase, pero no bloquea si falla
+  try {
+    await loadAllSystemsFromSupabase();
+  } catch (err) {
+    console.warn('Supabase no disponible, usando datos locales:', err);
+  }
 
   initSystemTabs();
   renderSystemContent("4231");

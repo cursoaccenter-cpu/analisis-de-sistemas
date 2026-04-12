@@ -2,9 +2,9 @@
 // Supabase Client — Análisis Sistemas
 // =============================================
 
-// ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO
-const SUPABASE_URL = 'TU_SUPABASE_URL';       // Ej: https://xxxx.supabase.co
-const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY'; // Tu clave pública (anon key)
+// ⚠️ Credenciales de Supabase configuradas
+const SUPABASE_URL = 'https://xxbdinogJzfmgbtbzyqj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YmRpbm9nanpmbWdidGJ6eXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDczOTcsImV4cCI6MjA5MTU4MzM5N30.CBHLccevJd1eogom5QWidxpFJsaOATaahDMSHl2LV-4';
 
 // --- Cliente ligero sin SDK (fetch directo a la REST API) ---
 const supabaseHeaders = {
