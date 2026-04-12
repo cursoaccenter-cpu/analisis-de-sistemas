@@ -67,7 +67,7 @@ async function initAuth() {
 }
 
 function addLogoutButton(email) {
-  const nav = document.querySelector('.nav-links');
+  const nav = document.querySelector('.nav'); // Corrección: El selector correcto en tu HTML es .nav
   if (!nav) return;
   
   // Remove existing logout if any
