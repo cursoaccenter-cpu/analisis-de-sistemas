@@ -67,22 +67,28 @@ async function initAuth() {
 }
 
 function addLogoutButton(email) {
-  const nav = document.querySelector('.nav'); // Corrección: El selector correcto en tu HTML es .nav
-  if (!nav) return;
+  const headerInner = document.querySelector('.header-inner'); // Insertamos directamente en el contenedor principal del header
+  if (!headerInner) return;
   
-  // Remove existing logout if any
-  const existing = nav.querySelector('.logout-btn');
+  const existing = document.querySelector('.logout-btn');
   if (existing) existing.remove();
 
   const logoutBtn = document.createElement('button');
   logoutBtn.className = 'logout-btn';
   logoutBtn.innerHTML = `
     <span class="logout-icon">󰗼</span>
-    <span class="logout-text">Cerrar Sesión</span>
+    <span class="logout-text">Salir</span>
     <span class="user-badge">${email.split('@')[0]}</span>
   `;
   logoutBtn.onclick = () => signOut();
-  nav.appendChild(logoutBtn);
+  
+  // Lo ponemos al lado de la insignia de IA
+  const badge = document.querySelector('.header-badge');
+  if (badge) {
+    headerInner.insertBefore(logoutBtn, badge);
+  } else {
+    headerInner.appendChild(logoutBtn);
+  }
 }
 
 
