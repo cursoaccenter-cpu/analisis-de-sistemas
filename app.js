@@ -77,6 +77,7 @@ const MINI_POSITIONS = {
 document.addEventListener("DOMContentLoaded", async () => {
   initParticles();
   initMiniPitch();
+  initAuth(); // Iniciamos el control de acceso
 
   // Intenta cargar datos de Supabase, pero no bloquea si falla
   try {
@@ -92,6 +93,47 @@ document.addEventListener("DOMContentLoaded", async () => {
   initScrollBehavior();
   initEditMode();
 });
+
+// --- Gestión de Autenticación ---
+async function initAuth() {
+  const overlay = document.getElementById('authOverlay');
+  const loginForm = document.getElementById('loginForm');
+  const errorEl = document.getElementById('authError');
+  const user = await getUser();
+
+  if (user) {
+    overlay.classList.add('hidden');
+    addLogoutButton(user.email);
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('btnLogin');
+
+    try {
+      btn.textContent = 'Verificando...';
+      btn.disabled = true;
+      await signIn(email, password);
+      window.location.reload();
+    } catch (err) {
+      errorEl.textContent = 'Acceso denegado: Credenciales incorrectas';
+      btn.textContent = 'Entrar al Sistema';
+      btn.disabled = false;
+    }
+  });
+}
+
+function addLogoutButton(email) {
+  const nav = document.querySelector('.nav-links');
+  const logoutBtn = document.createElement('button');
+  logoutBtn.className = 'logout-btn';
+  logoutBtn.textContent = `Salir (${email.split('@')[0]})`;
+  logoutBtn.onclick = () => signOut();
+  nav.appendChild(logoutBtn);
+}
+
 
 // =============================================
 // PARTICLES
