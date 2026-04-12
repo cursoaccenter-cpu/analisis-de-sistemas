@@ -3,108 +3,102 @@
 // =============================================
 
 // ⚠️ Credenciales de Supabase configuradas
-const SUPABASE_URL = 'https://xxbdinogJzfmgbtbzyqj.supabase.co';
+const SUPABASE_URL = 'https://xxbdinogjzfmgbtbzyqj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YmRpbm9nanpmbWdidGJ6eXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDczOTcsImV4cCI6MjA5MTU4MzM5N30.CBHLccevJd1eogom5QWidxpFJsaOATaahDMSHl2LV-4';
 
 // --- Cliente ligero sin SDK (fetch directo a la REST API) ---
 const supabaseHeaders = {
-  'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-  'Prefer': 'return=representation'
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
 };
 
-/**
- * Carga el análisis guardado para un sistema (ej: '4231' o '532').
- * @param {string} systemKey
- * @returns {Promise<object|null>}
- */
-async function loadSystemFromSupabase(systemKey) {
-  try {
-    if (SUPABASE_URL === 'TU_SUPABASE_URL') return null;
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tactical_analysis?system_key=eq.${systemKey}&select=*`,
-      { headers: supabaseHeaders }
-    );
-
-    if (!res.ok) {
-      console.error('Error cargando desde Supabase:', res.status, await res.text());
-      return null;
-    }
-
-    const data = await res.json();
-    return data.length > 0 ? data[0] : null;
-  } catch (err) {
-    console.error('Error de conexión con Supabase:', err);
-    return null;
-  }
-}
-
-/**
- * Guarda o actualiza el análisis de un sistema en Supabase.
- * Usa UPSERT para insertar o actualizar si ya existe.
- * @param {string} systemKey
- * @param {object} systemData
- * @returns {Promise<boolean>}
- */
-async function saveSystemToSupabase(systemKey, systemData) {
-  try {
-    if (SUPABASE_URL === 'TU_SUPABASE_URL') {
-      console.warn('⚠️ Supabase no configurado. Guardando solo en localStorage.');
-      return false;
-    }
-
-    const payload = {
-      system_key: systemKey,
-      name: systemData.name,
-      nickname: systemData.nickname,
-      description: systemData.description,
-      strengths: systemData.strengths,
-      weaknesses: systemData.weaknesses,
-      positions: systemData.positions,
-      updated_at: new Date().toISOString()
-    };
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tactical_analysis?on_conflict=system_key`,
-      {
-        method: 'POST',
-        headers: { ...supabaseHeaders, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (!res.ok) {
-      console.error('Error guardando en Supabase:', res.status, await res.text());
-      return false;
-    }
-
-    console.log('✅ Análisis guardado en Supabase:', systemKey);
-    return true;
-  } catch (err) {
-    console.error('Error de conexión con Supabase:', err);
-    return false;
-  }
-}
-
-/**
- * Carga todos los sistemas guardados en Supabase y los fusiona con los datos locales.
- * @returns {Promise<void>}
- */
 async function loadAllSystemsFromSupabase() {
-  const systems = ['4231', '532'];
-  for (const key of systems) {
-    const remote = await loadSystemFromSupabase(key);
-    if (remote && typeof SYSTEMS !== 'undefined') {
-      // Fusiona los datos remotos con los datos locales
-      if (remote.name)        SYSTEMS[key].name        = remote.name;
-      if (remote.nickname)    SYSTEMS[key].nickname    = remote.nickname;
-      if (remote.description) SYSTEMS[key].description = remote.description;
-      if (remote.strengths)   SYSTEMS[key].strengths   = remote.strengths;
-      if (remote.weaknesses)  SYSTEMS[key].weaknesses  = remote.weaknesses;
-      if (remote.positions)   SYSTEMS[key].positions   = remote.positions;
-      console.log(`✅ Sistema ${key} cargado desde Supabase`);
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/tactical_analysis?select=*`, {
+    headers: supabaseHeaders
+  });
+  
+  if (!response.ok) return;
+  
+  const data = await response.json();
+  data.forEach(item => {
+    if (SYSTEMS[item.system_key]) {
+      SYSTEMS[item.system_key].name = item.name || SYSTEMS[item.system_key].name;
+      SYSTEMS[item.system_key].nickname = item.nickname || SYSTEMS[item.system_key].nickname;
+      SYSTEMS[item.system_key].description = item.description || SYSTEMS[item.system_key].description;
+      SYSTEMS[item.system_key].strengths = item.strengths || SYSTEMS[item.system_key].strengths;
+      SYSTEMS[item.system_key].weaknesses = item.weaknesses || SYSTEMS[item.system_key].weaknesses;
+      SYSTEMS[item.system_key].positions = item.positions || SYSTEMS[item.system_key].positions;
     }
-  }
+  });
+}
+
+async function saveSystemToSupabase(systemKey, systemData) {
+  const token = localStorage.getItem('supabase.auth.token');
+  if (!token) return false;
+
+  const payload = {
+    system_key: systemKey,
+    name: systemData.name,
+    nickname: systemData.nickname,
+    description: systemData.description,
+    strengths: systemData.strengths,
+    weaknesses: systemData.weaknesses,
+    positions: systemData.positions,
+    updated_at: new Date().toISOString()
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/tactical_analysis?system_key=eq.${systemKey}`, {
+    method: 'POST',
+    headers: {
+      ...supabaseHeaders,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  return response.ok;
+}
+
+// --- Autenticación ---
+async function signIn(email, password) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      ...supabaseHeaders,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ email, password })
+  });
+  
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error_description || data.error || 'Error al iniciar sesión');
+  
+  // Guardar token en localStorage
+  localStorage.setItem('supabase.auth.token', data.access_token);
+  return data;
+}
+
+function signOut() {
+  localStorage.removeItem('supabase.auth.token');
+  window.location.reload();
+}
+
+function getSessionToken() {
+  return localStorage.getItem('supabase.auth.token');
+}
+
+async function getUser() {
+  const token = getSessionToken();
+  if (!token) return null;
+  
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      ...supabaseHeaders,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  return response.ok ? await response.json() : null;
 }

@@ -1,79 +1,14 @@
-// =============================================
-// TacticAI — Main App Logic
-// Interactive Football Tactical Analysis
-// =============================================
+/**
+ * TacticAI — Main Application Logic
+ * Football Tactical Analysis Platform
+ */
 
-// ---- State ----
 let activeSystem = "4231";
 let activeFieldFormation = "4231";
-let activePositionFilter = "all";
 let isEditMode = false;
-let editedSystems = JSON.parse(localStorage.getItem('editedSystems')) || null;
+let editedSystems = JSON.parse(localStorage.getItem('editedSystems')) || {};
 
-// Initialize data from localStorage if available
-if (editedSystems) {
-  Object.keys(editedSystems).forEach(sys => {
-    Object.assign(SYSTEMS[sys], editedSystems[sys]);
-  });
-}
-
-// ---- Formation Positions on Field (% of pitch width x height) ----
-const FIELD_POSITIONS = {
-  "4231": [
-    // GK
-    { id: "gk", x: 50, y: 92, color: "#FBBF24", posType: "gk" },
-    // DEF
-    { id: "lb",  x: 18, y: 75, color: "#60A5FA", posType: "def" },
-    { id: "lcb", x: 36, y: 78, color: "#60A5FA", posType: "def" },
-    { id: "rcb", x: 64, y: 78, color: "#60A5FA", posType: "def" },
-    { id: "rb",  x: 82, y: 75, color: "#60A5FA", posType: "def" },
-    // MID
-    { id: "ldm1", x: 36, y: 60, color: "#34D399", posType: "mid" },
-    { id: "ldm2", x: 64, y: 60, color: "#34D399", posType: "mid" },
-    // ATT
-    { id: "lw",  x: 12, y: 40, color: "#A855F7", posType: "att" },
-    { id: "am",  x: 50, y: 38, color: "#F87171", posType: "att" },
-    { id: "rw",  x: 88, y: 40, color: "#A855F7", posType: "att" },
-    // ST
-    { id: "st",  x: 50, y: 18, color: "#F87171", posType: "att" },
-  ],
-  "532": [
-    // GK
-    { id: "gk",  x: 50, y: 92, color: "#FBBF24", posType: "gk" },
-    // DEF 5
-    { id: "lwb", x: 10, y: 72, color: "#A855F7", posType: "wing" },
-    { id: "lcb", x: 28, y: 78, color: "#60A5FA", posType: "def" },
-    { id: "cb",  x: 50, y: 82, color: "#60A5FA", posType: "def" },
-    { id: "rcb", x: 72, y: 78, color: "#60A5FA", posType: "def" },
-    { id: "rwb", x: 90, y: 72, color: "#A855F7", posType: "wing" },
-    // MID 3
-    { id: "lm",  x: 22, y: 54, color: "#34D399", posType: "mid" },
-    { id: "dm",  x: 50, y: 58, color: "#34D399", posType: "mid" },
-    { id: "rm",  x: 78, y: 54, color: "#34D399", posType: "mid" },
-    // FW 2
-    { id: "ls",  x: 36, y: 24, color: "#F87171", posType: "att" },
-    { id: "st",  x: 64, y: 20, color: "#F87171", posType: "att" },
-  ],
-};
-
-// ---- MINI PITCH positions (hero) ----
-const MINI_POSITIONS = {
-  "4231": [
-    { x: 50, y: 90 },
-    { x: 18, y: 75 }, { x: 37, y: 78 }, { x: 63, y: 78 }, { x: 82, y: 75 },
-    { x: 37, y: 58 }, { x: 63, y: 58 },
-    { x: 12, y: 38 }, { x: 50, y: 36 }, { x: 88, y: 38 },
-    { x: 50, y: 17 },
-  ],
-  "532": [
-    { x: 50, y: 90 },
-    { x: 10, y: 70 }, { x: 28, y: 76 }, { x: 50, y: 80 }, { x: 72, y: 76 }, { x: 90, y: 70 },
-    { x: 22, y: 52 }, { x: 50, y: 56 }, { x: 78, y: 52 },
-    { x: 36, y: 24 }, { x: 64, y: 20 },
-  ],
-};
-
-// ---- Init ----
+// Initialize application
 document.addEventListener("DOMContentLoaded", async () => {
   initParticles();
   initMiniPitch();
@@ -115,10 +50,16 @@ async function initAuth() {
     try {
       btn.textContent = 'Verificando...';
       btn.disabled = true;
+      errorEl.textContent = '';
       await signIn(email, password);
       window.location.reload();
     } catch (err) {
-      errorEl.textContent = 'Acceso denegado: Credenciales incorrectas';
+      console.error('Error de login:', err);
+      if (err.message.includes('Email not confirmed')) {
+        errorEl.textContent = 'Error: Debes confirmar tu email en el panel de Supabase.';
+      } else {
+        errorEl.textContent = 'Acceso denegado: ' + err.message;
+      }
       btn.textContent = 'Entrar al Sistema';
       btn.disabled = false;
     }
@@ -127,6 +68,7 @@ async function initAuth() {
 
 function addLogoutButton(email) {
   const nav = document.querySelector('.nav-links');
+  if (!nav) return;
   const logoutBtn = document.createElement('button');
   logoutBtn.className = 'logout-btn';
   logoutBtn.textContent = `Salir (${email.split('@')[0]})`;
@@ -137,147 +79,128 @@ function addLogoutButton(email) {
 
 // =============================================
 // PARTICLES
-// =============================================
+// = =============================================
 function initParticles() {
   const container = document.getElementById("bgParticles");
   if (!container) return;
-  const colors = ["#6EE7F7", "#A855F7", "#34D399", "#60A5FA"];
-  for (let i = 0; i < 30; i++) {
+  const count = 30;
+  for (let i = 0; i < count; i++) {
     const p = document.createElement("div");
     p.className = "particle";
-    const size = Math.random() * 4 + 2;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const left = Math.random() * 100;
-    const duration = Math.random() * 20 + 15;
-    const delay = Math.random() * 20;
-    p.style.cssText = `
-      width:${size}px; height:${size}px;
-      background:${color};
-      left:${left}%;
-      animation-duration:${duration}s;
-      animation-delay:${delay}s;
-      box-shadow: 0 0 ${size * 2}px ${color};
-    `;
+    const size = Math.random() * 3 + 1;
+    p.style.width = `${size}px`;
+    p.style.height = `${size}px`;
+    p.style.left = `${Math.random() * 100}%`;
+    p.style.top = `${Math.random() * 100}%`;
+    p.style.animationDuration = `${Math.random() * 10 + 10}s`;
+    p.style.opacity = Math.random() * 0.5 + 0.1;
     container.appendChild(p);
   }
 }
 
 // =============================================
-// MINI PITCH (Hero)
-// =============================================
-let miniCurrentSystem = "4231";
-let miniToggleInterval;
-
-function initMiniPitch() {
-  renderMiniPitch("4231");
-  // Alternate between the two formations
-  miniToggleInterval = setInterval(() => {
-    miniCurrentSystem = miniCurrentSystem === "4231" ? "532" : "4231";
-    renderMiniPitch(miniCurrentSystem);
-    const lbl = document.getElementById("formationLabel");
-    if (lbl) {
-      lbl.textContent = miniCurrentSystem === "4231" ? "4-2-3-1" : "5-3-2";
-      lbl.style.animation = "none";
-      void lbl.offsetWidth;
-      lbl.style.animation = "fadeInUp 0.5s ease";
-    }
-  }, 3500);
-}
-
-function renderMiniPitch(system) {
-  const container = document.getElementById("miniPlayers");
-  if (!container) return;
-  const positions = MINI_POSITIONS[system];
-  const colors = {
-    "4231": ["#FBBF24", "#60A5FA","#60A5FA","#60A5FA","#60A5FA","#34D399","#34D399","#A855F7","#F87171","#A855F7","#F87171"],
-    "532":  ["#FBBF24","#A855F7","#60A5FA","#60A5FA","#60A5FA","#A855F7","#34D399","#34D399","#34D399","#F87171","#F87171"],
-  };
-
-  // Animate existing out
-  const existingDots = container.querySelectorAll(".mini-player");
-  existingDots.forEach(d => { d.style.opacity = "0"; d.style.transform = "translate(-50%,-50%) scale(0)"; });
-
-  setTimeout(() => {
-    container.innerHTML = "";
-    positions.forEach((pos, i) => {
-      const dot = document.createElement("div");
-      dot.className = "mini-player";
-      dot.style.cssText = `
-        left:${pos.x}%;
-        top:${pos.y}%;
-        background:${colors[system][i]};
-        width:20px; height:20px;
-        opacity:0;
-        transform:translate(-50%,-50%) scale(0);
-        transition: all 0.4s cubic-bezier(0.4,0,0.2,1) ${i * 0.04}s;
-      `;
-      container.appendChild(dot);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          dot.style.opacity = "1";
-          dot.style.transform = "translate(-50%,-50%) scale(1)";
-        });
-      });
-    });
-  }, 300);
-}
-
-// =============================================
-// SYSTEM TABS
+// TABS & CONTENT RENDERING
 // =============================================
 function initSystemTabs() {
-  const tabs = document.querySelectorAll(".system-tab");
-  tabs.forEach(tab => {
+  document.querySelectorAll(".system-tab").forEach(tab => {
     tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".system-tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
-      const sys = tab.dataset.system;
-      activeSystem = sys;
-      activePositionFilter = "all";
-      renderSystemContent(sys);
+      activeSystem = tab.dataset.system;
+      renderSystemContent(activeSystem);
     });
   });
 }
 
-// =============================================
-// SYSTEM CONTENT RENDERING
-// =============================================
-function renderSystemContent(system) {
-  const data = SYSTEMS[system];
+function renderSystemContent(systemKey) {
   const container = document.getElementById("systemContent");
-  if (!container || !data) return;
+  if (!container) return;
+
+  const data = SYSTEMS[systemKey];
+  
+  // Merge with locally edited data if exists
+  if (editedSystems[systemKey]) {
+      Object.assign(data, editedSystems[systemKey]);
+  }
+
+  const badgesHTML = data.badges.map(b => `<span class="badge ${b.type}">${b.label}</span>`).join("");
+  const strengthsHTML = data.strengths.map(s => `
+    <li class="sw-item">
+      <div class="dot"></div>
+      <div ${isEditMode ? 'contenteditable="true" class="editable-text"' : ''}>${s}</div>
+    </li>
+  `).join("");
+  const weaknessesHTML = data.weaknesses.map(w => `
+    <li class="sw-item">
+      <div class="dot"></div>
+      <div ${isEditMode ? 'contenteditable="true" class="editable-text"' : ''}>${w}</div>
+    </li>
+  `).join("");
 
   container.innerHTML = `
-    <div class="system-layout ${isEditMode ? 'editable-active' : ''}">
-      ${renderSummaryCard(data)}
-      ${renderStrengths(data)}
-      ${renderWeaknesses(data)}
-      ${renderPositions(data, system)}
+    <div class="system-layout">
+      <!-- Info Col -->
+      <div class="system-info">
+        <div class="card intro-card">
+          <div class="card-header">
+            <span class="card-icon">${data.icon}</span>
+            <div>
+              <h2 class="card-title" ${isEditMode ? 'contenteditable="true" id="editName"' : ''}>${data.name}</h2>
+              <p class="card-subtitle" ${isEditMode ? 'contenteditable="true" id="editNickname"' : ''}>${data.nickname}</p>
+            </div>
+          </div>
+          <div class="badges-wrapper">${badgesHTML}</div>
+          <p class="description-text" ${isEditMode ? 'contenteditable="true" id="editDesc"' : ''}>${data.description}</p>
+        </div>
+
+        <div class="sw-grid">
+          <div class="card sw-card strengths">
+            <h3 class="sw-title strengths">
+              <div class="sw-icon">💪</div> Fortalezas
+            </h3>
+            <ul class="sw-list" id="strengthsList">${strengthsHTML}</ul>
+          </div>
+          <div class="card sw-card weaknesses">
+            <h3 class="sw-title weaknesses">
+              <div class="sw-icon">⚠️</div> Debilidades
+            </h3>
+            <ul class="sw-list" id="weaknessesList">${weaknessesHTML}</ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Column: Positions -->
+      <div class="positions-col">
+        <div class="card positions-card">
+          <div class="positions-header">
+            <h3 class="positions-title">Configuración de Posiciones</h3>
+            <div class="pos-filter">
+              <button class="pos-filter-btn active" data-filter="all">Todas</button>
+              <button class="pos-filter-btn" data-filter="def">Defensa</button>
+              <button class="pos-filter-btn" data-filter="mid">Medio</button>
+              <button class="pos-filter-btn" data-filter="att">Ataque</button>
+            </div>
+          </div>
+          <div class="positions-grid" id="positionsGrid">
+            ${data.positions.map(pos => renderPositionCard(pos)).join("")}
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
-  if (isEditMode) {
-    document.body.classList.add('editable-active');
-    // Ensure edit mode UI is consistent
-    document.getElementById('editToggle').classList.add('active');
-  }
-
-  // Position filter buttons
+  // Re-attach position filter events
   container.querySelectorAll(".pos-filter-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       container.querySelectorAll(".pos-filter-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      activePositionFilter = btn.dataset.filter;
-      filterPositions(system, activePositionFilter);
+      filterPositions(systemKey, btn.dataset.filter);
     });
   });
 
-  // Position card clicks (modal)
+  // Re-attach position card click events
   container.querySelectorAll(".position-card").forEach(card => {
-    card.addEventListener("click", (e) => {
-      // If clicking on an editable element or if edit mode is active, don't open modal
-      if (isEditMode) return;
-      
+    card.addEventListener("click", () => {
       const posId = card.dataset.posId;
       const posData = data.positions.find(p => p.id === posId);
       if (posData) openPositionModal(posData, data.name);
@@ -285,131 +208,49 @@ function renderSystemContent(system) {
   });
 }
 
-function renderSummaryCard(data) {
-  const badges = data.badges.map(b => `<div class="sbadge ${b.type}">${b.label}</div>`).join("");
-  return `
-    <div class="card summary-card">
-      <div>
-        <div class="card-label">SISTEMA TÁCTICO</div>
-        <div class="card-title" ${isEditMode ? 'contenteditable="true"' : ""}>${data.name} — ${data.nickname}</div>
-        <p class="card-desc" ${isEditMode ? 'contenteditable="true"' : ""}>${data.description}</p>
-      </div>
-      <div class="summary-badges">${badges}</div>
-    </div>
-  `;
-}
-
-function renderStrengths(data) {
-  const items = data.strengths.map((s, i) => `
-    <li class="sw-item">
-      <span class="dot"></span>
-      <span ${isEditMode ? 'contenteditable="true"' : ""} data-index="${i}">${s}</span>
-    </li>
-  `).join("");
-  return `
-    <div class="card sw-card">
-      <div class="sw-title strengths">
-        <div class="sw-icon">✅</div>
-        Fortalezas del ${data.name}
-      </div>
-      <ul class="sw-list strengths">${items}</ul>
-    </div>
-  `;
-}
-
-function renderWeaknesses(data) {
-  const items = data.weaknesses.map((w, i) => `
-    <li class="sw-item">
-      <span class="dot"></span>
-      <span ${isEditMode ? 'contenteditable="true"' : ""} data-index="${i}">${w}</span>
-    </li>
-  `).join("");
-  return `
-    <div class="card sw-card">
-      <div class="sw-title weaknesses">
-        <div class="sw-icon">⚠️</div>
-        Debilidades del ${data.name}
-      </div>
-      <ul class="sw-list weaknesses">${items}</ul>
-    </div>
-  `;
-}
-
-function renderPositions(data, system) {
-  const cards = data.positions.map(pos => renderPositionCard(pos)).join("");
-  return `
-    <div class="card positions-card">
-      <div class="positions-header">
-        <div class="positions-title">Roles de Cada Posición — ${data.name}</div>
-        <div class="pos-filter">
-          <button class="pos-filter-btn active" data-filter="all">Todos</button>
-          <button class="pos-filter-btn" data-filter="gk">Portero</button>
-          <button class="pos-filter-btn" data-filter="def">Defensa</button>
-          <button class="pos-filter-btn" data-filter="mid">Mediocampo</button>
-          <button class="pos-filter-btn" data-filter="att">Ataque</button>
-          ${system === "532" ? '<button class="pos-filter-btn" data-filter="wing">Carrileros</button>' : ""}
-        </div>
-      </div>
-      <div class="positions-grid" id="positionsGrid">
-        ${cards}
-      </div>
-    </div>
-  `;
-}
-
 function renderPositionCard(pos) {
-  const attrBadges = pos.attrs.map(a => `<span class="attr-badge">${a.label}</span>`).join("");
   return `
-    <div class="position-card" data-pos-id="${pos.id}" data-pos-type="${pos.type}">
+    <div class="position-card" data-pos-id="${pos.id}">
       <div class="pos-header">
         <div class="pos-number ${pos.type}">${pos.abbr}</div>
         <div class="pos-info">
-          <div class="pos-name" ${isEditMode ? 'contenteditable="true" data-type="name"' : ""}>${pos.name}</div>
+          <div class="pos-name" ${isEditMode ? 'contenteditable="true"' : ''}>${pos.name}</div>
           <div class="pos-abbr">${pos.type.toUpperCase()}</div>
         </div>
       </div>
-      <p class="pos-role" ${isEditMode ? 'contenteditable="true" data-type="role"' : ""}>${pos.shortRole}</p>
-      <div class="pos-attrs">${attrBadges}</div>
+      <div class="pos-role" ${isEditMode ? 'contenteditable="true"' : ''}>${pos.shortRole}</div>
+      <div class="pos-attrs">
+        ${pos.attrs.slice(0, 2).map(a => `<span class="attr-badge">${a.label}</span>`).join("")}
+      </div>
     </div>
   `;
 }
 
 // =============================================
-// EDIT MODE LOGIC
+// EDIT MODE
 // =============================================
 function initEditMode() {
   const toggle = document.getElementById('editToggle');
-  const btnSave = document.getElementById('btnSaveEdit');
-  const btnCancel = document.getElementById('btnCancelEdit');
-
-  if (!toggle) return;
+  const cancelBtn = document.getElementById('cancelEdit');
+  const saveBtn = document.getElementById('saveEdit');
 
   toggle.addEventListener('click', () => {
-    isEditMode = !isEditMode;
-    console.log("Modo edición:", isEditMode);
-    
-    if (isEditMode) {
-      toggle.classList.add('active');
-      toggle.querySelector('span:last-child').textContent = 'Edición Activa';
-      document.body.classList.add('editable-active');
-    } else {
-      toggle.classList.remove('active');
-      toggle.querySelector('span:last-child').textContent = 'Modo Edición';
-      document.body.classList.remove('editable-active');
-    }
-    
+    isEditMode = true;
+    toggle.classList.add('active');
+    toggle.querySelector('span:last-child').textContent = 'Editando...';
+    document.body.classList.add('editable-active');
     renderSystemContent(activeSystem);
   });
 
-  btnSave.addEventListener('click', saveChanges);
-  btnCancel.addEventListener('click', () => {
-    if (confirm('¿Estás seguro de que quieres descartar los cambios?')) {
-      isEditMode = false;
-      toggle.classList.remove('active');
-      document.body.classList.remove('editable-active');
-      renderSystemContent(activeSystem);
-    }
+  cancelBtn.addEventListener('click', () => {
+    isEditMode = false;
+    toggle.classList.remove('active');
+    toggle.querySelector('span:last-child').textContent = 'Modo Edición';
+    document.body.classList.remove('editable-active');
+    renderSystemContent(activeSystem);
   });
+
+  saveBtn.addEventListener('click', saveChanges);
 }
 
 async function saveChanges() {
@@ -417,30 +258,24 @@ async function saveChanges() {
   const systemKey = activeSystem;
   const data = SYSTEMS[systemKey];
 
-  // 1. Update core info
-  const titleText = container.querySelector('.card-title').textContent;
-  const descText = container.querySelector('.card-desc').textContent;
-  
-  // Parse name vs nickname (handling " — ")
-  const parts = titleText.split(' — ');
-  data.name = parts[0] || data.name;
-  data.nickname = parts[1] || data.nickname;
-  data.description = descText;
+  // Get Top Level Data
+  const newName = document.getElementById('editName')?.textContent;
+  const newNickname = document.getElementById('editNickname')?.textContent;
+  const newDesc = document.getElementById('editDesc')?.textContent;
 
-  // 2. Update strengths
-  container.querySelectorAll('.sw-list.strengths span[contenteditable]').forEach(el => {
-    const idx = el.dataset.index;
-    if (idx !== undefined) data.strengths[idx] = el.textContent;
-  });
+  if (newName) data.name = newName;
+  if (newNickname) data.nickname = newNickname;
+  if (newDesc) data.description = newDesc;
 
-  // 3. Update weaknesses
-  container.querySelectorAll('.sw-list.weaknesses span[contenteditable]').forEach(el => {
-    const idx = el.dataset.index;
-    if (idx !== undefined) data.weaknesses[idx] = el.textContent;
-  });
+  // Get Strengths/Weaknesses
+  const strengthsEls = document.querySelectorAll('#strengthsList .editable-text');
+  data.strengths = Array.from(strengthsEls).map(el => el.textContent);
 
-  // 4. Update position cards
-  container.querySelectorAll('.position-card').forEach(card => {
+  const weaknessesEls = document.querySelectorAll('#weaknessesList .editable-text');
+  data.weaknesses = Array.from(weaknessesEls).map(el => el.textContent);
+
+  // Get Positions
+  document.querySelectorAll('.position-card').forEach(card => {
     const posId = card.dataset.posId;
     const posObj = data.positions.find(p => p.id === posId);
     if (posObj) {
@@ -475,7 +310,7 @@ async function saveChanges() {
   if (saved) {
     showNotification('✅ Análisis guardado en la base de datos.');
   } else {
-    showNotification('💾 Análisis guardado localmente (Supabase no configurado).');
+    showNotification('💾 Análisis guardado localmente (Inicie sesión para guardar en la nube).');
   }
 }
 
@@ -500,8 +335,10 @@ function showNotification(msg) {
     notif.style.transform = 'translateY(0)';
   });
   setTimeout(() => {
-    notif.style.opacity = '0';
-    notif.style.transform = 'translateY(10px)';
+    if (notif) {
+      notif.style.opacity = '0';
+      notif.style.transform = 'translateY(10px)';
+    }
   }, 3500);
 }
 
@@ -661,9 +498,6 @@ function initComparison() {
   drawRadarChart();
 }
 
-// =============================================
-// RADAR CHART (Canvas)
-// =============================================
 function drawRadarChart() {
   const canvas = document.getElementById("radarChart");
   if (!canvas) return;
@@ -672,7 +506,6 @@ function drawRadarChart() {
   const cy = canvas.height / 2;
   const radius = 140;
   const n = RADAR_LABELS.length;
-  const center = { x: cx, y: cy };
 
   const ratings4231 = [
     SYSTEMS["4231"].ratings.ataque,
@@ -699,19 +532,15 @@ function drawRadarChart() {
     const r = (radius * level) / 5;
     ctx.beginPath();
     for (let i = 0; i < n; i++) {
-      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
     ctx.closePath();
     ctx.strokeStyle = "rgba(255,255,255,0.06)";
     ctx.lineWidth = 1;
     ctx.stroke();
-    if (level === 5) {
-      ctx.fillStyle = "rgba(255,255,255,0.02)";
-      ctx.fill();
-    }
   }
 
   // Draw axes
@@ -723,22 +552,18 @@ function drawRadarChart() {
     ctx.moveTo(cx, cy);
     ctx.lineTo(x, y);
     ctx.strokeStyle = "rgba(255,255,255,0.1)";
-    ctx.lineWidth = 1;
     ctx.stroke();
 
     // Labels
-    const lx = cx + (radius + 22) * Math.cos(angle);
-    const ly = cy + (radius + 22) * Math.sin(angle);
+    const lx = cx + (radius + 25) * Math.cos(angle);
+    const ly = cy + (radius + 25) * Math.sin(angle);
     ctx.fillStyle = "#94A3B8";
     ctx.font = "bold 11px Inter, sans-serif";
     ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
     ctx.fillText(RADAR_LABELS[i], lx, ly);
   }
 
-  // Draw 4-2-3-1 polygon
   drawRadarPolygon(ctx, cx, cy, radius, n, ratings4231, "#6EE7F7");
-  // Draw 5-3-2 polygon
   drawRadarPolygon(ctx, cx, cy, radius, n, ratings532, "#A855F7");
 }
 
@@ -758,17 +583,45 @@ function drawRadarPolygon(ctx, cx, cy, radius, n, values, color) {
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  // Dots
   for (let i = 0; i < n; i++) {
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
     const r = (radius * values[i]) / 100;
     const x = cx + r * Math.cos(angle);
     const y = cy + r * Math.sin(angle);
     ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
   }
+}
+
+// =============================================
+// MINI PITCH (Header)
+// =============================================
+function initMiniPitch() {
+    const canvas = document.getElementById('miniPitch');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.strokeStyle = 'rgba(110, 231, 247, 0.4)';
+    ctx.lineWidth = 1;
+
+    // Outer
+    ctx.strokeRect(5, 5, w-10, h-10);
+    // Center
+    ctx.beginPath();
+    ctx.moveTo(5, h/2);
+    ctx.lineTo(w-5, h/2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, 20, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Box
+    ctx.strokeRect(w/4, 5, w/2, 25);
+    ctx.strokeRect(w/4, h-30, w/2, 25);
 }
 
 // =============================================
@@ -783,7 +636,6 @@ function initFieldVisualization() {
       btn.classList.add("active");
       activeFieldFormation = btn.dataset.formation;
       renderField(activeFieldFormation);
-      // Reset tooltip
       hideTooltip();
     });
   });
@@ -802,7 +654,7 @@ function renderField(formation) {
 
     const player = document.createElement("div");
     player.className = "pitch-player";
-    player.style.cssText = `left:${pos.x}%; top:${pos.y}%; transition: all 0.5s cubic-bezier(0.4,0,0.2,1) ${i*0.04}s;`;
+    player.style.cssText = `left:${pos.x}%; top:${pos.y}%; transition: all 0.5s ease ${i*0.03}s;`;
     player.dataset.posId = pos.id;
 
     player.innerHTML = `
@@ -819,17 +671,12 @@ function renderField(formation) {
 
 function showTooltip(posData, color) {
   const tooltip = document.getElementById("playerTooltip");
-  const posEl = document.getElementById("tooltipPos");
-  const nameEl = document.getElementById("tooltipName");
-  const roleEl = document.getElementById("tooltipRole");
-  const attrsEl = document.getElementById("tooltipAttrs");
-
   if (!tooltip) return;
 
-  posEl.textContent = `${posData.abbr} — ${posData.type.toUpperCase()}`;
-  nameEl.textContent = posData.name;
-  roleEl.textContent = posData.shortRole;
-  attrsEl.innerHTML = posData.attrs.map(a =>
+  document.getElementById("tooltipPos").textContent = `${posData.abbr} — ${posData.type.toUpperCase()}`;
+  document.getElementById("tooltipName").textContent = posData.name;
+  document.getElementById("tooltipRole").textContent = posData.shortRole;
+  document.getElementById("tooltipAttrs").innerHTML = posData.attrs.map(a =>
     `<span class="attr-badge">${a.label}</span>`
   ).join("");
 
@@ -843,20 +690,14 @@ function hideTooltip() {
 }
 
 // =============================================
-// SCROLL BEHAVIOR
+// SCROLL & ANIMATIONS
 // =============================================
 function initScrollBehavior() {
   const header = document.getElementById("header");
-
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 50) {
-      header && header.classList.add("scrolled");
-    } else {
-      header && header.classList.remove("scrolled");
-    }
+    header && header.classList.toggle("scrolled", window.scrollY > 50);
   }, { passive: true });
 
-  // Intersection Observer for scroll animations
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(el => {
       if (el.isIntersecting) {
@@ -866,7 +707,5 @@ function initScrollBehavior() {
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll(".card, .comp-item, .position-card").forEach(el => {
-    observer.observe(el);
-  });
+  document.querySelectorAll(".card, .comp-item, .position-card").forEach(el => observer.observe(el));
 }
