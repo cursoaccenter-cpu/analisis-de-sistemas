@@ -1552,3 +1552,121 @@ canvas#radarChart {
   .football-pitch { width: 300px; height: 450px; }
   .pitch-mini { width: 220px; height: 310px; }
 }
+
+/* =============================================
+   PANTALLA DE INICIO (LOGIN)
+   ============================================= */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-overlay::before {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle at center, rgba(110, 231, 247, 0.15) 0%, transparent 50%);
+}
+
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  padding: 48px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.auth-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(to right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: #94a3b8;
+  margin-bottom: 40px;
+  font-size: 0.95rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-container {
+  text-align: left;
+}
+
+.input-container label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6ee7f7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  margin-left: 4px;
+}
+
+.auth-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  color: white !important;
+  font-size: 1rem !important;
+  transition: all 0.3s;
+}
+
+.btn-auth {
+  margin-top: 10px;
+  background: #fff;
+  color: #020617;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.auth-error {
+  margin-top: 20px;
+  color: #f87171;
+  font-size: 0.85rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.logout-btn {
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 15px;
+}
+
