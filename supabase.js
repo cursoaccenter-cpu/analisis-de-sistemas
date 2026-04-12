@@ -170,10 +170,15 @@ async function deletePlayerFromSupabase(dorsal) {
 
 async function uploadPlayerPhoto(file, dorsal) {
   const token = getSessionToken();
-  if (!token) return null;
+  if (!token) {
+    console.error('❌ No hay sesión activa para subir fotos');
+    return null;
+  }
 
   const ext = file.name.split('.').pop().toLowerCase();
   const fileName = `player_${dorsal}_${Date.now()}.${ext}`;
+
+  console.log('📤 Subiendo foto:', fileName, 'Tamaño:', file.size, 'bytes');
 
   const r = await fetch(`${SUPABASE_URL}/storage/v1/object/player-photos/${fileName}`, {
     method: 'POST',
@@ -186,6 +191,13 @@ async function uploadPlayerPhoto(file, dorsal) {
     body: file
   });
 
-  if (!r.ok) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/player-photos/${fileName}`;
+  if (!r.ok) {
+    const errBody = await r.text();
+    console.error('❌ Error al subir foto:', r.status, errBody);
+    return null;
+  }
+
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/player-photos/${fileName}`;
+  console.log('✅ Foto subida:', publicUrl);
+  return publicUrl;
 }
