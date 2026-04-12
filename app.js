@@ -282,6 +282,17 @@ function initEditMode() {
     const saveBtn = e.target.closest('#btnSaveEdit') || e.target.closest('#saveEdit');
     if (saveBtn) {
       saveChanges();
+      return;
+    }
+
+    // Botones del campo (4231 / 532)
+    const fieldBtn = e.target.closest('.field-btn');
+    if (fieldBtn) {
+      document.querySelectorAll(".field-btn").forEach(b => b.classList.remove("active"));
+      fieldBtn.classList.add("active");
+      activeFieldFormation = fieldBtn.dataset.formation;
+      renderField(activeFieldFormation);
+      hideTooltip();
     }
   });
 }

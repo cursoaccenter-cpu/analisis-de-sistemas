@@ -526,4 +526,33 @@ const SYSTEMS = {
   },
 };
 
+const FIELD_POSITIONS = {
+  "4231": [
+    { id: "gk", x: 50, y: 92, color: "#94A3B8" },
+    { id: "lb", x: 15, y: 70, color: "#6EE7F7" },
+    { id: "lcb", x: 38, y: 78, color: "#6EE7F7" },
+    { id: "rcb", x: 62, y: 78, color: "#6EE7F7" },
+    { id: "rb", x: 85, y: 70, color: "#6EE7F7" },
+    { id: "ldm1", x: 35, y: 55, color: "#A855F7" },
+    { id: "ldm2", x: 65, y: 55, color: "#A855F7" },
+    { id: "lw", x: 15, y: 35, color: "#F472B6" },
+    { id: "am", x: 50, y: 38, color: "#F472B6" },
+    { id: "rw", x: 85, y: 35, color: "#F472B6" },
+    { id: "st", x: 50, y: 15, color: "#FB7185" },
+  ],
+  "532": [
+    { id: "gk", x: 50, y: 92, color: "#94A3B8" },
+    { id: "lwb", x: 12, y: 55, color: "#6EE7F7" },
+    { id: "lcb", x: 30, y: 78, color: "#6EE7F7" },
+    { id: "cb", x: 50, y: 82, color: "#6EE7F7" },
+    { id: "rcb", x: 70, y: 78, color: "#6EE7F7" },
+    { id: "rwb", x: 88, y: 55, color: "#6EE7F7" },
+    { id: "dm", x: 50, y: 60, color: "#A855F7" },
+    { id: "lm", x: 30, y: 48, color: "#A855F7" },
+    { id: "rm", x: 70, y: 48, color: "#A855F7" },
+    { id: "ls", x: 40, y: 20, color: "#FB7185" },
+    { id: "st", x: 60, y: 20, color: "#FB7185" },
+  ]
+};
+
 const RADAR_LABELS = ["Ataque", "Defensa", "Mediocampo", "Pressing", "Versatilidad", "Complejidad"];
