@@ -224,7 +224,10 @@ function renderSystemContent(system) {
 
   // Position card clicks (modal)
   container.querySelectorAll(".position-card").forEach(card => {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (e) => {
+      // If clicking on an editable element or if edit mode is active, don't open modal
+      if (isEditMode) return;
+      
       const posId = card.dataset.posId;
       const posData = data.positions.find(p => p.id === posId);
       if (posData) openPositionModal(posData, data.name);
@@ -333,8 +336,18 @@ function initEditMode() {
 
   toggle.addEventListener('click', () => {
     isEditMode = !isEditMode;
-    toggle.classList.toggle('active', isEditMode);
-    document.body.classList.toggle('editable-active', isEditMode);
+    console.log("Modo edición:", isEditMode);
+    
+    if (isEditMode) {
+      toggle.classList.add('active');
+      toggle.querySelector('span:last-child').textContent = 'Edición Activa';
+      document.body.classList.add('editable-active');
+    } else {
+      toggle.classList.remove('active');
+      toggle.querySelector('span:last-child').textContent = 'Modo Edición';
+      document.body.classList.remove('editable-active');
+    }
+    
     renderSystemContent(activeSystem);
   });
 
