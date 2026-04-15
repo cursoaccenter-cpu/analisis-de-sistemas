@@ -757,6 +757,22 @@ function renderSquad(filter, data = currentSquadData) {
     const avatarUrl = p.photo_url
       ? p.photo_url
       : `https://api.dicebear.com/8.x/avataaars/svg?seed=${seed}&backgroundColor=0f172a,111827&backgroundType=gradientLinear`;
+
+    // Calcular edad desde fecha de nacimiento
+    let edadHTML = '';
+    if (p.fecha_nacimiento) {
+      const hoy = new Date();
+      const nac = new Date(p.fecha_nacimiento);
+      const edad = hoy.getFullYear() - nac.getFullYear() - (hoy < new Date(hoy.getFullYear(), nac.getMonth(), nac.getDate()) ? 1 : 0);
+      edadHTML = `<div class="squad-meta-item"><span class="squad-meta-icon">🎂</span><span>${p.fecha_nacimiento} (${edad} años)</span></div>`;
+    }
+    const lateralidadHTML = p.lateralidad
+      ? `<div class="squad-meta-item"><span class="squad-meta-icon">${p.lateralidad === 'Zurdo' ? '🦶' : p.lateralidad === 'Ambidiestro' ? '⚡' : '🦵'}</span><span>${p.lateralidad}</span></div>`
+      : '';
+    const descripcionHTML = p.descripcion
+      ? `<div class="squad-descripcion">${p.descripcion}</div>`
+      : '';
+
     return `
       <div class="squad-card animate-in" data-dorsal="${p.dorsal}">
         <div class="squad-dorsal" style="color:${color}">${p.dorsal}</div>
@@ -772,6 +788,8 @@ function renderSquad(filter, data = currentSquadData) {
           <div class="squad-nombre">${p.nombre}</div>
           <div class="squad-apellido">${p.apellido}</div>
           <div class="squad-pos">${p.pos}</div>
+          ${edadHTML || lateralidadHTML ? `<div class="squad-meta">${edadHTML}${lateralidadHTML}</div>` : ''}
+          ${descripcionHTML}
         </div>
       </div>
     `;
@@ -790,6 +808,15 @@ function renderSquad(filter, data = currentSquadData) {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       deletePlayer(parseInt(btn.dataset.dorsal));
+    });
+  });
+
+  // Detalle al hacer clic en la tarjeta
+  grid.querySelectorAll('.squad-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const d = parseInt(card.dataset.dorsal);
+      const player = currentSquadData.find(p => p.dorsal === d);
+      if (player) openPlayerDetailModal(player);
     });
   });
 }
@@ -834,6 +861,25 @@ function openPlayerModal(player = null) {
         <div class="player-form-group">
           <label>Descripción de posición</label>
           <input type="text" id="fPos" class="player-input" value="${isEdit ? player.pos : ''}" placeholder="Ej: Lateral Dcho" required />
+        </div>
+        <div class="player-form-row">
+          <div class="player-form-group">
+            <label>Fecha de nacimiento</label>
+            <input type="date" id="fFechaNac" class="player-input" value="${isEdit && player.fecha_nacimiento ? player.fecha_nacimiento : ''}" />
+          </div>
+          <div class="player-form-group">
+            <label>Lateralidad</label>
+            <select id="fLateralidad" class="player-input">
+              <option value="" ${!isEdit || !player.lateralidad ? 'selected' : ''}>— Sin especificar —</option>
+              <option value="Diestro" ${isEdit && player.lateralidad==='Diestro' ? 'selected' : ''}>Diestro</option>
+              <option value="Zurdo" ${isEdit && player.lateralidad==='Zurdo' ? 'selected' : ''}>Zurdo</option>
+              <option value="Ambidiestro" ${isEdit && player.lateralidad==='Ambidiestro' ? 'selected' : ''}>Ambidiestro</option>
+            </select>
+          </div>
+        </div>
+        <div class="player-form-group">
+          <label>Descripción del jugador</label>
+          <textarea id="fDescripcion" class="player-input player-textarea" rows="3" placeholder="Perfil, características o notas sobre el jugador...">${isEdit && player.descripcion ? player.descripcion : ''}</textarea>
         </div>
         <div class="player-form-group">
           <label>Foto del jugador</label>
@@ -890,7 +936,10 @@ function openPlayerModal(player = null) {
       nombre: document.getElementById('fNombre').value.trim(),
       apellido: document.getElementById('fApellido').value.trim(),
       pos: document.getElementById('fPos').value.trim(),
-      tipo: document.getElementById('fTipo').value
+      tipo: document.getElementById('fTipo').value,
+      fecha_nacimiento: document.getElementById('fFechaNac').value || null,
+      lateralidad: document.getElementById('fLateralidad').value || null,
+      descripcion: document.getElementById('fDescripcion').value.trim() || null
     };
 
     // Subir foto si hay una seleccionada
@@ -929,6 +978,100 @@ function openPlayerModal(player = null) {
 function closePlayerModal() {
   const overlay = document.getElementById('playerFormModal');
   if (overlay) { overlay.classList.remove('open'); setTimeout(() => overlay.remove(), 300); }
+}
+
+function openPlayerDetailModal(player) {
+  const existing = document.getElementById('playerDetailModal');
+  if (existing) existing.remove();
+
+  const color = TIPO_COLOR[player.tipo] || '#6EE7F7';
+  const label = TIPO_LABEL[player.tipo] || player.tipo.toUpperCase();
+  const seed = encodeURIComponent(`${player.nombre}${player.apellido}`);
+  const avatarUrl = player.photo_url
+    ? player.photo_url
+    : `https://api.dicebear.com/8.x/avataaars/svg?seed=${seed}&backgroundColor=0f172a,111827&backgroundType=gradientLinear`;
+
+  // Calcular edad
+  let edadTexto = "N/A";
+  let edadAnos = "";
+  if (player.fecha_nacimiento) {
+    const hoy = new Date();
+    const nac = new Date(player.fecha_nacimiento);
+    const edad = hoy.getFullYear() - nac.getFullYear() - (hoy < new Date(hoy.getFullYear(), nac.getMonth(), nac.getDate()) ? 1 : 0);
+    edadTexto = player.fecha_nacimiento;
+    edadAnos = `(${edad} años)`;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pos-modal-overlay';
+  overlay.id = 'playerDetailModal';
+  overlay.innerHTML = `
+    <div class="pos-modal player-detail-modal">
+      <button class="modal-close" id="detailModalClose">&times;</button>
+      
+      <div class="player-detail-header">
+        <div class="player-detail-bg"></div>
+        <div class="player-detail-header-content">
+          <img src="${avatarUrl}" class="player-detail-avatar-large" alt="${player.nombre}" />
+          <div class="player-detail-main-info">
+            <div class="player-detail-dorsal-big" style="color:${color}">${player.dorsal}</div>
+            <div class="player-detail-name-full">${player.nombre} <br/> ${player.apellido}</div>
+            <div class="player-detail-pos-large" style="color:${color}">${player.pos}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-detail-body">
+        <div class="player-detail-section">
+          <div class="player-detail-stlabel">FECHA DE NACIMIENTO</div>
+          <div class="player-detail-stvalue">
+            <span>📅</span> ${edadTexto} <span style="font-size:0.85rem; color:var(--text-secondary)">${edadAnos}</span>
+          </div>
+        </div>
+        
+        <div class="player-detail-section">
+          <div class="player-detail-stlabel">LATERALIDAD</div>
+          <div class="player-detail-stvalue">
+            <span>${player.lateralidad === 'Zurdo' ? '🦶' : player.lateralidad === 'Ambidiestro' ? '⚡' : '🦵'}</span>
+            ${player.lateralidad || 'No especificada'}
+          </div>
+        </div>
+
+        <div class="player-detail-section" style="grid-column: 1 / -1">
+          <div class="player-detail-stlabel">NOTAS Y PERFIL TÁCTICO</div>
+          <div class="player-detail-desc">${player.descripcion || 'Sin descripción detallada disponible.'}</div>
+        </div>
+
+        <div class="player-detail-actions">
+          <button class="player-detail-btn edit" id="detailEditBtn">
+            <span>✏️</span> Editar Perfil
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('open')));
+
+  document.getElementById('detailModalClose').onclick = () => closePlayerDetailModal();
+  document.body.style.overflow = 'hidden'; 
+
+  document.getElementById('detailEditBtn').onclick = () => {
+    closePlayerDetailModal();
+    openPlayerModal(player);
+  };
+
+  overlay.onclick = (e) => { if (e.target === overlay) closePlayerDetailModal(); };
+}
+
+function closePlayerDetailModal() {
+  const overlay = document.getElementById('playerDetailModal');
+  if (overlay) {
+    overlay.classList.remove('open');
+    setTimeout(() => overlay.remove(), 300);
+  }
+  document.body.style.overflow = '';
 }
 
 async function deletePlayer(dorsal) {
